@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>بطاقة الطالب</title>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .page { width: min(100%, 720px); display: grid; gap: 16px; }
+      .toolbar { display: flex; justify-content: flex-end; gap: 10px; }
+      button {
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 18px;
+        font: inherit;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e40af, #b45309);
+        color: white;
+        cursor: pointer;
+      }
+      .badge {
+        position: relative;
+        overflow: hidden;
+        min-height: 420px;
+        border: 1px solid #dbeafe;
+        border-radius: 34px;
+        background:
+          radial-gradient(circle at 18% 10%, rgba(30, 64, 175, 0.14), transparent 30%),
+          radial-gradient(circle at 80% 85%, rgba(180, 83, 9, 0.14), transparent 32%),
+          linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+        padding: 34px;
+      }
+      .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 22px; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .logo { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; background: linear-gradient(135deg, #1e40af, #b45309); color: white; font-size: 28px; font-weight: 900; }
+      h1 { margin: 0; font-size: 30px; line-height: 1.2; }
+      .subtitle { margin: 4px 0 0; color: #64748b; font-weight: 700; }
+      .tag { border-radius: 999px; background: #eef2ff; color: #1e3a8a; padding: 10px 14px; font-weight: 900; white-space: nowrap; }
+      .body { display: grid; gap: 22px; padding-block: 34px; }
+      .label { color: #64748b; font-size: 14px; font-weight: 800; }
+      .name { margin-top: 8px; font-size: clamp(28px, 5vw, 46px); font-weight: 900; line-height: 1.2; }
+      .code-box { display: grid; gap: 8px; border-radius: 24px; background: #0f172a; color: white; padding: 20px; direction: ltr; text-align: center; }
+      .code { font-size: clamp(24px, 5vw, 42px); font-weight: 900; letter-spacing: 0.08em; }
+      .footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 2px solid #e2e8f0; padding-top: 18px; color: #64748b; font-weight: 700; }
+      @media print {
+        body { background: #fff; padding: 0; }
+        .toolbar { display: none; }
+        .page { width: 100%; }
+        .badge { box-shadow: none; border-color: #cbd5e1; border-radius: 24px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="toolbar">
+        <button type="button" onclick="window.print()">طباعة / PDF</button>
+      </div>
+      <section class="badge" aria-label="بطاقة الطالب">
+        <div class="header">
+          <div class="brand">
+            <div class="logo">S</div>
+            <div>
+              <h1>SchoolPro</h1>
+              <p class="subtitle">بطاقة تعريف الطالب</p>
+            </div>
+          </div>
+          <div class="tag">طالب</div>
+        </div>
+        <div class="body">
+          <div>
+            <div class="label">اسم الطالب</div>
+            <div id="student-name" class="name">—</div>
+          </div>
+          <div class="code-box">
+            <div class="label" style="color:#cbd5e1">رمز الطالب</div>
+            <div id="student-code" class="code">—</div>
+          </div>
+        </div>
+        <div class="footer">
+          <span>يرجى إبراز البطاقة عند الحاجة</span>
+          <span id="print-date"></span>
+        </div>
+      </section>
+    </main>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get("name") || "اسم الطالب غير محدد";
+      const code = params.get("code") || "غير محدد";
+      document.getElementById("student-name").textContent = name;
+      document.getElementById("student-code").textContent = code;
+      document.getElementById("print-date").textContent = new Intl.DateTimeFormat("ar-IQ-u-nu-latn").format(new Date());
+    </script>
+  </body>
+</html>

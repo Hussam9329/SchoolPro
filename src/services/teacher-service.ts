@@ -18,6 +18,78 @@ export type TeacherServiceResult<T> = {
   errors?: Record<string, string>;
 };
 
+const DETAILS_LIMIT = 12;
+
+function compactDetails(values: Array<string | null | undefined>, totalCount = values.length): string[] {
+  const uniqueValues = Array.from(
+    new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value))),
+  );
+  const visibleValues = uniqueValues.slice(0, DETAILS_LIMIT);
+  const hiddenCount = Math.max(totalCount - visibleValues.length, 0);
+
+  if (hiddenCount > 0) {
+    return [...visibleValues, `+ ${hiddenCount} عناصر أخرى`];
+  }
+
+  return visibleValues;
+}
+
+function normalizeMeta(value?: string | null): string {
+  return value?.trim() ?? "";
+}
+
+function formatSubjectDetail(subject: any): string | undefined {
+  if (!subject?.name) return undefined;
+  return subject.name;
+}
+
+function formatSectionDetail(section: any): string | undefined {
+  if (!section?.name) return undefined;
+  const className = section.class?.name ?? section.className ?? "صف غير محدد";
+  return `${className} - شعبة ${section.name}`;
+}
+
+function formatScheduleDetail(schedule: any): string | undefined {
+  if (!schedule) return undefined;
+  const subjectName = schedule.subject?.name ?? "مادة غير محددة";
+  const sectionName = schedule.section ? formatSectionDetail(schedule.section) : undefined;
+  const dayAndTime = [schedule.dayOfWeek, schedule.startTime && schedule.endTime ? `${schedule.startTime}-${schedule.endTime}` : schedule.startTime]
+    .filter(Boolean)
+    .join(" ");
+  return [subjectName, sectionName, dayAndTime || "موعد غير محدد"].filter(Boolean).join(" / ");
+}
+
+function formatExamDetail(exam: any): string | undefined {
+  if (!exam) return undefined;
+  const subjectName = exam.subject?.name ?? "مادة غير محددة";
+  const sectionName = exam.section ? formatSectionDetail(exam.section) : undefined;
+  return [exam.name ?? "اختبار", subjectName, sectionName].filter(Boolean).join(" / ");
+}
+
+function formatGradeDetail(grade: any): string | undefined {
+  if (!grade) return undefined;
+  const studentName = grade.student?.fullName ?? "طالب غير محدد";
+  const subjectName = grade.subject?.name ?? "مادة غير محددة";
+  const score = grade.score !== undefined && grade.score !== null ? `الدرجة ${grade.score}` : undefined;
+  return [studentName, subjectName, score].filter(Boolean).join(" / ");
+}
+
+function subjectMatchesSection(subject: any, section: any): boolean {
+  const schoolClass = section?.class ?? section;
+  const subjectStage = normalizeMeta(subject.schoolStage);
+  const subjectGrade = normalizeMeta(subject.gradeLevel);
+  const subjectTrack = normalizeMeta(subject.studyTrack);
+  const sectionStage = normalizeMeta(schoolClass?.schoolStage);
+  const sectionGrade = normalizeMeta(schoolClass?.gradeLevel);
+  const sectionTrack = normalizeMeta(schoolClass?.studyTrack);
+
+  if (subjectStage && sectionStage && subjectStage !== sectionStage) return false;
+  if (subjectGrade && sectionGrade && subjectGrade !== sectionGrade) return false;
+  if (subjectTrack && sectionTrack && subjectTrack !== sectionTrack) return false;
+
+  return true;
+}
+
 export async function getTeachers(): Promise<TeacherListItem[]> {
   const teachers = await db.teacher.findMany({
     orderBy: [
@@ -67,6 +139,8 @@ export async function getTeacherDetails(
     return null;
   }
 
+  const item = toTeacherListItem(teacher);
+
   return {
     id: teacher.id,
     fullName: teacher.fullName,
@@ -79,14 +153,17 @@ export async function getTeacherDetails(
     isActive: teacher.isActive,
     createdAt: teacher.createdAt,
     updatedAt: teacher.updatedAt,
-    subjects: teacher.teacherSubjects.map((item) => ({
-      id: item.subject.id,
-      name: item.subject.name,
-    })),
-    subjectsCount: teacher._count.teacherSubjects,
-    schedulesCount: teacher._count.schedules,
-    gradesCount: teacher._count.grades ?? 0,
-    examsCount: teacher._count.exams ?? 0,
+    subjects: item.subjects,
+    sections: item.sections,
+    subjectsCount: item.subjectsCount,
+    sectionsCount: item.sectionsCount,
+    schedulesCount: item.schedulesCount,
+    gradesCount: item.gradesCount,
+    examsCount: item.examsCount,
+    scheduleDetails: item.scheduleDetails,
+    examDetails: item.examDetails,
+    gradeDetails: item.gradeDetails,
+    deleteAssociations: item.deleteAssociations,
   };
 }
 
@@ -137,7 +214,7 @@ export async function createTeacher(
 
   const data = normalizeTeacherInput(input);
   const subjectIds = await getValidSubjectIds(data.subjectIds ?? []);
-  const sectionIds = await getValidSectionIds(data.sectionIds ?? []);
+  const sectionIds = await getValidSectionIdsForSubjects(data.sectionIds ?? [], subjectIds);
 
   if (subjectIds.length === 0) {
     return {
@@ -249,7 +326,7 @@ export async function updateTeacher(
 
   const data = normalizeTeacherInput(input);
   const subjectIds = await getValidSubjectIds(data.subjectIds ?? []);
-  const sectionIds = await getValidSectionIds(data.sectionIds ?? []);
+  const sectionIds = await getValidSectionIdsForSubjects(data.sectionIds ?? [], subjectIds);
 
   if (subjectIds.length === 0) {
     return {
@@ -393,35 +470,18 @@ export async function deleteTeacher(
 
 export async function getTeacherDeleteInfo(
   id: string,
-): Promise<TeacherServiceResult<{ associations: { label: string; count: number }[] }>> {
+): Promise<TeacherServiceResult<{ associations: { label: string; count: number; details?: string[] }[] }>> {
   const teacher = await db.teacher.findUnique({
     where: { id },
-    include: {
-      _count: {
-        select: {
-          schedules: true,
-          teacherSubjects: true,
-          teacherSections: true,
-          grades: true,
-          exams: true,
-        },
-      },
-    },
+    include: teacherListInclude,
   });
 
   if (!teacher) {
     return { ok: false, message: "لم يتم العثور على المدرس." };
   }
 
-  const check = getTeacherDeleteAssociations({
-    schedulesCount: teacher._count.schedules,
-    teacherSubjectsCount: teacher._count.teacherSubjects,
-    teacherSectionsCount: teacher._count.teacherSections,
-    gradesCount: teacher._count.grades,
-    examsCount: teacher._count.exams,
-  });
-
-  return { ok: true, data: { associations: check.associations }, message: "" };
+  const item = toTeacherListItem(teacher);
+  return { ok: true, data: { associations: item.deleteAssociations }, message: "" };
 }
 
 export async function toggleTeacherStatus(
@@ -663,6 +723,28 @@ async function getValidSectionIds(sectionIds: string[]): Promise<string[]> {
   return sections.map((section) => section.id);
 }
 
+async function getValidSectionIdsForSubjects(sectionIds: string[], subjectIds: string[]): Promise<string[]> {
+  const baseSectionIds = await getValidSectionIds(sectionIds);
+
+  if (baseSectionIds.length === 0 || subjectIds.length === 0) {
+    return [];
+  }
+
+  const [sections, subjects] = await Promise.all([
+    db.section.findMany({
+      where: { id: { in: baseSectionIds }, isActive: true },
+      include: { class: true },
+    }),
+    db.subject.findMany({
+      where: { id: { in: subjectIds }, isActive: true },
+    }),
+  ]);
+
+  return sections
+    .filter((section: any) => subjects.some((subject: any) => subjectMatchesSection(subject, section)))
+    .map((section: any) => section.id);
+}
+
 const teacherListInclude = {
   teacherSubjects: {
     include: {
@@ -677,6 +759,16 @@ const teacherListInclude = {
       section: {
         include: {
           class: true,
+          students: {
+            orderBy: { fullName: "asc" },
+          },
+          schedules: {
+            include: {
+              subject: true,
+              teacher: true,
+            },
+            orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+          },
         },
       },
     },
@@ -684,9 +776,39 @@ const teacherListInclude = {
       createdAt: "desc",
     },
   },
+  schedules: {
+    include: {
+      subject: true,
+      section: {
+        include: {
+          class: true,
+        },
+      },
+    },
+    orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+  },
+  exams: {
+    include: {
+      subject: true,
+      section: {
+        include: {
+          class: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  },
+  grades: {
+    include: {
+      student: true,
+      subject: true,
+    },
+    orderBy: { createdAt: "desc" },
+  },
   _count: {
     select: {
       teacherSubjects: true,
+      teacherSections: true,
       schedules: true,
       grades: true,
       exams: true,
@@ -699,6 +821,39 @@ type TeacherWithRelations = Prisma.TeacherGetPayload<{
 }>;
 
 function toTeacherListItem(teacher: TeacherWithRelations): TeacherListItem {
+  const subjectDetails = compactDetails(
+    (teacher.teacherSubjects ?? []).map((item: any) => formatSubjectDetail(item.subject)),
+    teacher._count?.teacherSubjects ?? teacher.teacherSubjects?.length ?? 0,
+  );
+  const sectionDetails = compactDetails(
+    (teacher.teacherSections ?? []).map((item: any) => formatSectionDetail(item.section)),
+    teacher._count?.teacherSections ?? teacher.teacherSections?.length ?? 0,
+  );
+  const scheduleDetails = compactDetails(
+    (teacher.schedules ?? []).map((schedule: any) => formatScheduleDetail(schedule)),
+    teacher._count?.schedules ?? teacher.schedules?.length ?? 0,
+  );
+  const examDetails = compactDetails(
+    (teacher.exams ?? []).map((exam: any) => formatExamDetail(exam)),
+    teacher._count?.exams ?? teacher.exams?.length ?? 0,
+  );
+  const gradeDetails = compactDetails(
+    (teacher.grades ?? []).map((grade: any) => formatGradeDetail(grade)),
+    teacher._count?.grades ?? teacher.grades?.length ?? 0,
+  );
+  const deleteCheck = getTeacherDeleteAssociations({
+    schedulesCount: teacher._count?.schedules ?? teacher.schedules?.length ?? 0,
+    teacherSubjectsCount: teacher._count?.teacherSubjects ?? teacher.teacherSubjects?.length ?? 0,
+    teacherSectionsCount: teacher._count?.teacherSections ?? teacher.teacherSections?.length ?? 0,
+    gradesCount: teacher._count?.grades ?? teacher.grades?.length ?? 0,
+    examsCount: teacher._count?.exams ?? teacher.exams?.length ?? 0,
+    subjectDetails,
+    sectionDetails,
+    scheduleDetails,
+    examDetails,
+    gradeDetails,
+  });
+
   return {
     id: teacher.id,
     fullName: teacher.fullName,
@@ -708,19 +863,38 @@ function toTeacherListItem(teacher: TeacherWithRelations): TeacherListItem {
     salary: teacher.salary,
     notes: teacher.notes,
     isActive: teacher.isActive,
-    subjects: teacher.teacherSubjects.map((item) => ({
+    subjects: (teacher.teacherSubjects ?? []).map((item: any) => ({
       id: item.subject.id,
       name: item.subject.name,
+      subjectBaseName: item.subject.subjectBaseName ?? null,
+      schoolStage: item.subject.schoolStage ?? null,
+      gradeLevel: item.subject.gradeLevel ?? null,
+      studyTrack: item.subject.studyTrack ?? null,
     })),
-    sections: teacher.teacherSections.map((item) => ({
-      id: item.section.id,
-      name: item.section.name,
-      className: item.section.class.name,
-    })),
-    subjectsCount: teacher._count.teacherSubjects,
-    schedulesCount: teacher._count.schedules,
-    gradesCount: teacher._count.grades ?? 0,
-    examsCount: teacher._count.exams ?? 0,
+    sections: (teacher.teacherSections ?? []).map((item: any) => {
+      const section = item.section;
+      return {
+        id: section.id,
+        name: section.name,
+        className: section.class?.name ?? "صف غير محدد",
+        schoolStage: section.class?.schoolStage ?? null,
+        gradeLevel: section.class?.gradeLevel ?? null,
+        studyTrack: section.class?.studyTrack ?? null,
+        studentsCount: section.students?.length ?? 0,
+        studentDetails: compactDetails((section.students ?? []).map((student: any) => student.fullName), section.students?.length ?? 0),
+        subjectDetails: compactDetails((section.schedules ?? []).map((schedule: any) => schedule.subject?.name), section.schedules?.length ?? 0),
+        scheduleDetails: compactDetails((section.schedules ?? []).map((schedule: any) => formatScheduleDetail(schedule)), section.schedules?.length ?? 0),
+      };
+    }),
+    subjectsCount: teacher._count?.teacherSubjects ?? teacher.teacherSubjects?.length ?? 0,
+    sectionsCount: teacher._count?.teacherSections ?? teacher.teacherSections?.length ?? 0,
+    schedulesCount: teacher._count?.schedules ?? teacher.schedules?.length ?? 0,
+    gradesCount: teacher._count?.grades ?? teacher.grades?.length ?? 0,
+    examsCount: teacher._count?.exams ?? teacher.exams?.length ?? 0,
+    scheduleDetails,
+    examDetails,
+    gradeDetails,
+    deleteAssociations: deleteCheck.associations,
     createdAt: teacher.createdAt,
   };
 }

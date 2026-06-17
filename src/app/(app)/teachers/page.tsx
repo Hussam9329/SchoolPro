@@ -1,16 +1,19 @@
+import type { ReactNode } from "react";
 import { revalidatePath } from "next/cache";
-
 import { redirect } from "next/navigation";
 import { buildFormErrorRedirect } from "@/lib/redirect-message";
 import {
   AlertTriangle,
   BookOpen,
+  CalendarDays,
   CheckCircle2,
+  ClipboardList,
   GraduationCap,
+  Layers3,
   Phone,
   Power,
-  Search,
   UserRound,
+  Users,
 } from "lucide-react";
 import { safeQuery } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -36,10 +39,10 @@ import {
 import type { Subject } from "@/types/subject";
 import type { SectionListItem } from "@/types/class";
 import { DeleteConfirmButton } from "@/components/shared/delete-confirm-button";
+import { TeacherAssignmentFields } from "./teacher-assignment-fields";
+import { TeacherLiveSearch } from "./teacher-live-search";
 
 export const dynamic = "force-dynamic";
-
-
 
 type TeachersPageProps = {
   searchParams?: Promise<{
@@ -73,12 +76,13 @@ export default async function TeachersPage({
 
   const filteredTeachers = query
     ? teachers.filter(
-        (t) =>
-          t.fullName.includes(query) ||
-          (t.phone && t.phone.includes(query)) ||
-          (t.email && t.email.includes(query)) ||
-          (t.specialty && t.specialty.includes(query)) ||
-          t.subjects.some((s) => s.name.includes(query)),
+        (teacher) =>
+          teacher.fullName.includes(query) ||
+          (teacher.phone && teacher.phone.includes(query)) ||
+          (teacher.email && teacher.email.includes(query)) ||
+          (teacher.specialty && teacher.specialty.includes(query)) ||
+          teacher.subjects.some((subject) => subject.name.includes(query)) ||
+          teacher.sections.some((section) => `${section.className} ${section.name}`.includes(query)),
       )
     : teachers;
 
@@ -86,75 +90,75 @@ export default async function TeachersPage({
 
   return (
     <div className="mx-auto flex w-full max-w-[1350px] flex-col gap-6">
-        <PageHeader
-          title="المدرسين"
-          description="أضف المدرسين واربطهم بالمواد الدراسية."
+      <PageHeader
+        title="المدرسين"
+        description="أضف المدرسين واربطهم بالمادة الصحيحة ثم بالشُعب المطابقة لنفس الصف والمرحلة."
+        icon="teachers"
+        badge="الخطوة الثالثة"
+      />
+
+      <TeachersFeedback
+        saved={resolvedSearchParams?.saved}
+        deleted={resolvedSearchParams?.deleted}
+        toggled={resolvedSearchParams?.toggled}
+        error={resolvedSearchParams?.error}
+        reason={resolvedSearchParams?.reason}
+      />
+
+      <SmartAlert
+        tone="info"
+        title="ربط المدرس صار حسب التخصص ثم المادة ثم الشُعب"
+        description="اختر عام/علمي/أدبي/مهني أولًا، ثم اختر المادة المرتبطة بصف معيّن، وبعدها تظهر فقط شُعب هذا الصف أو المرحلة المطابقة."
+        actionLabel="إدارة المواد"
+        actionHref="/subjects"
+      />
+
+      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <TeacherCreateForm
+          subjects={subjects}
+          sections={sections}
+          draft={{
+            fullName: resolvedSearchParams?.draft_fullName,
+            phone: resolvedSearchParams?.draft_phone,
+            subjectIds: resolvedSearchParams?.draft_subjectIds,
+            sectionIds: resolvedSearchParams?.draft_sectionIds,
+          }}
+        />
+
+        <div className="flex flex-col gap-6">
+          <TeacherStats
+            total={counts.total}
+            active={counts.active}
+            inactive={counts.inactive}
+            withSubjects={counts.withSubjects}
+          />
+
+          <TeacherSearchForm query={query} teachers={teachers} />
+        </div>
+      </section>
+
+      {!hasTeachers ? (
+        <EmptyState
           icon="teachers"
-          badge="الخطوة الثالثة"
+          title="لا يوجد مدرسين بعد"
+          description="ابدأ بإضافة أول مدرس وربطه بالتخصص والمادة والشُعب المناسبة. بعد ذلك يمكنك بناء الجدول الدراسي."
+          actionLabel="إضافة أول مدرس"
+          actionHref="#teacher-form"
+          secondaryLabel="إدارة المواد"
+          secondaryHref="/subjects"
         />
-
-        <TeachersFeedback
-          saved={resolvedSearchParams?.saved}
-          deleted={resolvedSearchParams?.deleted}
-          toggled={resolvedSearchParams?.toggled}
-          error={resolvedSearchParams?.error}
-          reason={resolvedSearchParams?.reason}
+      ) : filteredTeachers.length === 0 ? (
+        <EmptyState
+          icon="search"
+          title="لا توجد نتائج مطابقة للبحث"
+          description="البحث يعمل مباشرة أثناء الكتابة. امسح حقل البحث لعرض كل المدرسين."
+          actionLabel="عرض كل المدرسين"
+          actionHref="/teachers"
         />
-
-        <SmartAlert
-          tone="info"
-          title="المدرسين يُربطون بالمواد أولاً"
-          description="أضف المدرس وحدّد المواد التي يدرّسها، ثم يمكنك استخدامها في بناء الجدول الدراسي."
-          actionLabel="إدارة المواد"
-          actionHref="/subjects"
-        />
-
-        <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <TeacherCreateForm
-            subjects={subjects}
-            sections={sections}
-            draft={{
-              fullName: resolvedSearchParams?.draft_fullName,
-              phone: resolvedSearchParams?.draft_phone,
-              subjectIds: resolvedSearchParams?.draft_subjectIds,
-              sectionIds: resolvedSearchParams?.draft_sectionIds,
-            }}
-          />
-
-          <div className="flex flex-col gap-6">
-            <TeacherStats
-              total={counts.total}
-              active={counts.active}
-              inactive={counts.inactive}
-              withSubjects={counts.withSubjects}
-            />
-
-            <TeacherSearchForm query={query} />
-          </div>
-        </section>
-
-        {!hasTeachers ? (
-          <EmptyState
-            icon="teachers"
-            title="لا يوجد مدرسين بعد"
-            description="ابدأ بإضافة أول مدرس وربطه بالمواد الدراسية. بعد ذلك يمكنك بناء الجدول الدراسي."
-            actionLabel="إضافة أول مدرس"
-            actionHref="#teacher-form"
-            secondaryLabel="إدارة المواد"
-            secondaryHref="/subjects"
-          />
-        ) : filteredTeachers.length === 0 ? (
-          <EmptyState
-            icon="search"
-            title="لا توجد نتائج مطابقة للبحث"
-            description="جرّب البحث باسم المدرس أو هاتفه أو تخصصه أو المادة، أو امسح حقل البحث لعرض الكل."
-            actionLabel="عرض كل المدرسين"
-            actionHref="/teachers"
-          />
-        ) : (
-          <TeacherList teachers={filteredTeachers} />
-        )}
-      </div>
+      ) : (
+        <TeacherList teachers={filteredTeachers} />
+      )}
+    </div>
   );
 }
 
@@ -255,7 +259,7 @@ function TeachersFeedback({
       <SmartAlert
         tone="success"
         title="تمت إضافة المدرس بنجاح"
-        description="رائع، تم حفظ بيانات المدرس. يمكنك الآن إضافة مدرسين آخرين أو بناء الجدول الدراسي."
+        description="تم حفظ بيانات المدرس وربطه بالمادة والشُعب المطابقة."
       />
     );
   }
@@ -265,7 +269,7 @@ function TeachersFeedback({
       <SmartAlert
         tone="success"
         title="تم حذف المدرس"
-        description="تم حذف المدرس من النظام لأنه غير مرتبط بمحاضرات في الجدول."
+        description="تم حذف المدرس وجميع الارتباطات التي وافقت عليها من قائمة الحذف."
       />
     );
   }
@@ -285,7 +289,7 @@ function TeachersFeedback({
     if (reason) {
       description = reason;
     } else if (error === "delete") {
-      description = "لا يمكن حذف المدرس إذا كان مرتبطًا بمحاضرات في الجدول. عطّله بدل حذفه.";
+      description = "لا يمكن حذف المدرس قبل مراجعة بياناته المرتبطة من قائمة الحذف.";
     } else if (error === "toggle") {
       description = "لا يمكن تحديث حالة المدرس. حاول مرة أخرى.";
     } else {
@@ -323,8 +327,26 @@ function toArray(value?: string | string[]) {
 }
 
 function TeacherCreateForm({ subjects, sections, draft }: TeacherCreateFormProps) {
-  const selectedSubjectIds = new Set(toArray(draft?.subjectIds));
-  const selectedSectionIds = new Set(toArray(draft?.sectionIds));
+  const selectedSubjectIds = toArray(draft?.subjectIds);
+  const selectedSectionIds = toArray(draft?.sectionIds);
+  const subjectOptions = subjects.map((subject) => ({
+    id: subject.id,
+    name: subject.name,
+    subjectBaseName: subject.subjectBaseName,
+    schoolStage: subject.schoolStage,
+    gradeLevel: subject.gradeLevel,
+    studyTrack: subject.studyTrack,
+  }));
+  const sectionOptions = sections.map((section) => ({
+    id: section.id,
+    name: section.name,
+    className: section.className,
+    schoolStage: section.schoolStage,
+    gradeLevel: section.gradeLevel,
+    studyTrack: section.studyTrack,
+    studentsCount: section.studentsCount,
+  }));
+
   return (
     <form
       id="teacher-form"
@@ -343,7 +365,7 @@ function TeacherCreateForm({ subjects, sections, draft }: TeacherCreateFormProps
             </h3>
 
             <p className="mt-1 text-sm leading-7 text-[var(--app-text-muted)]">
-              أدخل بيانات المدرس واربطها بالمواد الدراسية التي يدرّسها.
+              أدخل بيانات المدرس، ثم اختر التخصص والمادة لتظهر الشُعب المطابقة تلقائيًا.
             </p>
           </div>
         </div>
@@ -395,111 +417,17 @@ function TeacherCreateForm({ subjects, sections, draft }: TeacherCreateFormProps
           <p className="mt-1 text-xs text-[var(--app-text-muted)]">11 رقم ويبدأ بـ 07</p>
         </div>
 
-        {subjects.length > 0 ? (
-          <div>
-            <span className="mb-2 block text-sm font-extrabold text-[var(--app-text)]">
-              المادة التي يدرّسها <span className="text-red-600">*</span>
-            </span>
-
-            <div className="max-h-52 overflow-y-auto rounded-2xl border border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {subjects.map((subject) => (
-                  <label
-                    key={subject.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--app-border-soft)] bg-white p-3 transition hover:border-teal-200 hover:bg-teal-50/40"
-                  >
-                    <input
-                      type="checkbox"
-                      name="subjectIds"
-                      value={subject.id}
-                      id={`subject-${subject.id}`}
-                      autoComplete="off"
-                      className="h-4 w-4 accent-teal-600"
-                      defaultChecked={selectedSubjectIds.has(subject.id)}
-                    />
-
-                    <span className="flex items-center gap-2">
-                      <BookOpen
-                        size={15}
-                        className="text-[var(--app-text-soft)]"
-                      />
-
-                      <span className="text-sm font-bold text-[var(--app-text)]">
-                        {subject.name}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <p className="mt-2 text-xs leading-6 text-[var(--app-text-soft)]">
-              اختر المادة أو المواد التي يدرّسها هذا المدرس.
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
-            <p className="text-sm leading-7 text-sky-800">
-              لا توجد مواد فعّال حاليًا.{" "}
-              <a
-                href="/subjects"
-                className="font-extrabold underline underline-offset-2 hover:text-sky-900"
-              >
-                أضف مواد أولًا
-              </a>{" "}
-              لربطها بالمدرسين.
-            </p>
-          </div>
-        )}
-
-        {sections.length > 0 ? (
-          <div>
-            <span className="mb-2 block text-sm font-extrabold text-[var(--app-text)]">
-              الأقسام (الشُعب) التي يدرّسها
-            </span>
-
-            <div className="max-h-52 overflow-y-auto rounded-2xl border border-[var(--app-border-soft)] bg-gradient-to-l from-blue-50/30 to-teal-50/20 p-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {sections.map((section) => (
-                  <label
-                    key={section.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--app-border-soft)] bg-white p-3 transition hover:border-blue-200 hover:bg-blue-50/40"
-                  >
-                    <input
-                      type="checkbox"
-                      name="sectionIds"
-                      value={section.id}
-                      id={`section-${section.id}`}
-                      autoComplete="off"
-                      className="h-4 w-4 accent-blue-600"
-                      defaultChecked={selectedSectionIds.has(section.id)}
-                    />
-
-                    <span className="flex items-center gap-2">
-                      <UserRound
-                        size={15}
-                        className="text-[var(--app-text-soft)]"
-                      />
-
-                      <span className="text-sm font-bold text-[var(--app-text)]">
-                        {section.className} - {section.name}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <p className="mt-2 text-xs leading-6 text-[var(--app-text-soft)]">
-              اختر الشُعب التي يدرّس فيها هذا المدرس (اختياري).
-            </p>
-          </div>
-        ) : null}
+        <TeacherAssignmentFields
+          subjects={subjectOptions}
+          sections={sectionOptions}
+          selectedSubjectIds={selectedSubjectIds}
+          selectedSectionIds={selectedSectionIds}
+        />
       </div>
 
       <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">
-          بعد إضافة المدرس، يمكنك بناء الجدول الدراسي وربطه بالمحاضرات.
+          بعد إضافة المدرس، ستظهر تفاصيله وارتباطاته ضمن بطاقة المدرس وقائمة الحذف.
         </p>
 
         <button type="submit" className="btn btn-primary">
@@ -591,41 +519,19 @@ function TeacherStats({
 
 type TeacherSearchFormProps = {
   query: string;
+  teachers: TeacherListItem[];
 };
 
-function TeacherSearchForm({ query }: TeacherSearchFormProps) {
-  return (
-    <form action="/teachers" className="app-card p-5">
-      <label
-        htmlFor="q"
-        className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-      >
-        البحث في المدرسين
-      </label>
+function TeacherSearchForm({ query, teachers }: TeacherSearchFormProps) {
+  const teacherOptions = teachers.map((teacher) => ({
+    id: teacher.id,
+    fullName: teacher.fullName,
+    phone: teacher.phone,
+    specialty: teacher.specialty,
+    subjectNames: teacher.subjects.map((subject) => subject.name),
+  }));
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search
-            size={18}
-            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--app-text-soft)]"
-          />
-
-          <input
-            id="q"
-            name="q"
-            autoComplete="off"
-            defaultValue={query}
-            placeholder="ابحث بالاسم أو الهاتف أو التخصص أو المادة..."
-            className="input pr-11"
-          />
-        </div>
-
-        <button type="submit" className="btn btn-secondary">
-          بحث
-        </button>
-      </div>
-    </form>
-  );
+  return <TeacherLiveSearch initialQuery={query} teachers={teacherOptions} />;
 }
 
 // ─── List ────────────────────────────────────────────────────────
@@ -644,7 +550,7 @@ function TeacherList({ teachers }: TeacherListProps) {
           </h3>
 
           <p className="mt-1 text-sm leading-6 text-[var(--app-text-muted)]">
-            تابع بيانات المدرسين وحالتهم والمواد المرتبطة بهم.
+            اضغط على تفاصيل المدرس لمشاهدة المواد والشُعب والطلاب والمحاضرات والاختبارات.
           </p>
         </div>
 
@@ -672,69 +578,79 @@ function TeacherRow({ teacher }: TeacherRowProps) {
   const statusClass = getTeacherStatusBadgeClass(status);
 
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div className="flex min-w-0 gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-700">
-          <UserRound size={25} />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-lg font-extrabold text-[var(--app-text)]">
-              {teacher.fullName}
-            </h4>
-
-            <span className={["badge", statusClass].join(" ")}>
-              {statusLabel}
-            </span>
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-start">
+      <div className="min-w-0">
+        <div className="flex min-w-0 gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-700">
+            <UserRound size={25} />
           </div>
 
-          <div className="mt-2 flex flex-wrap gap-2 text-sm text-[var(--app-text-muted)]">
-            {teacher.phone ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold" dir="ltr">
-                <Phone size={14} />
-                {teacher.phone}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-lg font-extrabold text-[var(--app-text)]">
+                {teacher.fullName}
+              </h4>
+
+              <span className={["badge", statusClass].join(" ")}>
+                {statusLabel}
               </span>
-            ) : null}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {teacher.subjects.length > 0 ? (
-              teacher.subjects.map((subject) => (
-                <span
-                  key={subject.id}
-                  className="badge bg-blue-50 text-blue-700"
-                >
-                  <BookOpen size={12} />
-                  {subject.name}
-                </span>
-              ))
-            ) : (
-              <span className="badge bg-slate-100 text-slate-500">
-                لا توجد مواد مرتبطة
-              </span>
-            )}
-          </div>
-
-          {teacher.sections.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {teacher.sections.map((section) => (
-                <span
-                  key={section.id}
-                  className="badge bg-purple-50 text-purple-700"
-                >
-                  {section.className} - {section.name}
-                </span>
-              ))}
             </div>
-          )}
 
-          <div className="mt-2 flex flex-wrap gap-2">
-            <span className="badge bg-slate-100 text-slate-600">
-              المحاضرات: {teacher.schedulesCount}
-            </span>
+            <div className="mt-2 flex flex-wrap gap-2 text-sm text-[var(--app-text-muted)]">
+              {teacher.phone ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold" dir="ltr">
+                  <Phone size={14} />
+                  {teacher.phone}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {teacher.subjects.length > 0 ? (
+                teacher.subjects.map((subject) => (
+                  <span
+                    key={subject.id}
+                    className="badge bg-blue-50 text-blue-700"
+                  >
+                    <BookOpen size={12} />
+                    {subject.name}
+                  </span>
+                ))
+              ) : (
+                <span className="badge bg-slate-100 text-slate-500">
+                  لا توجد مواد مرتبطة
+                </span>
+              )}
+            </div>
+
+            {teacher.sections.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {teacher.sections.map((section) => (
+                  <span
+                    key={section.id}
+                    className="badge bg-purple-50 text-purple-700"
+                  >
+                    {section.className} - {section.name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className="badge bg-slate-100 text-slate-600">
+                المحاضرات: {teacher.schedulesCount}
+              </span>
+              <span className="badge bg-slate-100 text-slate-600">
+                الاختبارات: {teacher.examsCount}
+              </span>
+              <span className="badge bg-slate-100 text-slate-600">
+                الدرجات: {teacher.gradesCount}
+              </span>
+            </div>
           </div>
         </div>
+
+        <TeacherDetailsPanel teacher={teacher} />
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
@@ -751,15 +667,114 @@ function TeacherRow({ teacher }: TeacherRowProps) {
           action={deleteTeacherAction}
           itemId={teacher.id}
           entityName="المدرس"
-          associations={[
-            ...(teacher.gradesCount > 0 ? [{ label: "درجات طلاب", count: teacher.gradesCount }] : []),
-            ...(teacher.examsCount > 0 ? [{ label: "امتحانات", count: teacher.examsCount }] : []),
-            ...(teacher.schedulesCount > 0 ? [{ label: "محاضرات في الجدول", count: teacher.schedulesCount }] : []),
-            ...(teacher.subjects.length > 0 ? [{ label: "ربط بمواد دراسية", count: teacher.subjects.length }] : []),
-            ...(teacher.sections.length > 0 ? [{ label: "ربط بشُعب دراسية", count: teacher.sections.length }] : []),
-          ]}
+          associations={teacher.deleteAssociations}
         />
       </div>
     </article>
+  );
+}
+
+type TeacherDetailsPanelProps = {
+  teacher: TeacherListItem;
+};
+
+function TeacherDetailsPanel({ teacher }: TeacherDetailsPanelProps) {
+  return (
+    <details className="mt-4 rounded-3xl border border-[var(--app-border-soft)] bg-white/85 p-4 shadow-sm open:bg-teal-50/30">
+      <summary className="cursor-pointer select-none text-sm font-extrabold text-teal-800">
+        عرض كافة تفاصيل المدرس
+      </summary>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+        <DetailCard
+          icon={<BookOpen size={17} />}
+          title="المواد التي يدرّسها"
+          badge={`${teacher.subjectsCount} مادة`}
+          items={teacher.subjects.map((subject) => [
+            subject.name,
+            [subject.schoolStage, subject.gradeLevel, subject.studyTrack].filter(Boolean).join(" / "),
+          ].filter(Boolean).join(" — "))}
+          empty="لا توجد مواد مرتبطة."
+        />
+
+        <DetailCard
+          icon={<Layers3 size={17} />}
+          title="الشُعب المرتبطة"
+          badge={`${teacher.sectionsCount} شعبة`}
+          items={teacher.sections.map((section) => `${section.className} - ${section.name} — ${section.studentsCount} طالب`)}
+          empty="لا توجد شُعب مرتبطة."
+        />
+
+        <DetailCard
+          icon={<Users size={17} />}
+          title="طلاب الشُعب المرتبطة"
+          badge="قائمة الطلاب"
+          items={teacher.sections.flatMap((section) => section.studentDetails.map((student) => `${student} — ${section.className} / ${section.name}`))}
+          empty="لا توجد أسماء طلاب متاحة ضمن الشُعب المرتبطة."
+        />
+
+        <DetailCard
+          icon={<CalendarDays size={17} />}
+          title="المحاضرات في الجدول"
+          badge={`${teacher.schedulesCount} محاضرة`}
+          items={teacher.scheduleDetails}
+          empty="لا توجد محاضرات مرتبطة."
+        />
+
+        <DetailCard
+          icon={<ClipboardList size={17} />}
+          title="الاختبارات"
+          badge={`${teacher.examsCount} اختبار`}
+          items={teacher.examDetails}
+          empty="لا توجد اختبارات مرتبطة."
+        />
+
+        <DetailCard
+          icon={<GraduationCap size={17} />}
+          title="الدرجات"
+          badge={`${teacher.gradesCount} درجة`}
+          items={teacher.gradeDetails}
+          empty="لا توجد درجات مرتبطة."
+        />
+      </div>
+    </details>
+  );
+}
+
+type DetailCardProps = {
+  icon: ReactNode;
+  title: string;
+  badge: string;
+  items: string[];
+  empty: string;
+};
+
+function DetailCard({ icon, title, badge, items, empty }: DetailCardProps) {
+  const visibleItems = items.filter(Boolean);
+
+  return (
+    <div className="rounded-2xl border border-[var(--app-border-soft)] bg-white p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm font-extrabold text-[var(--app-text)]">
+          <span className="text-teal-700">{icon}</span>
+          {title}
+        </div>
+        <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-extrabold text-teal-700 ring-1 ring-teal-100">
+          {badge}
+        </span>
+      </div>
+
+      {visibleItems.length > 0 ? (
+        <div className="flex max-h-44 flex-wrap gap-2 overflow-y-auto">
+          {visibleItems.map((item) => (
+            <span key={`${title}-${item}`} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold leading-5 text-slate-700">
+              {item}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs leading-6 text-[var(--app-text-muted)]">{empty}</p>
+      )}
+    </div>
   );
 }

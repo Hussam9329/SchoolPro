@@ -36,28 +36,47 @@ export type TeacherListItem = {
   subjects: {
     id: string;
     name: string;
+    subjectBaseName: string | null;
+    schoolStage: string | null;
+    gradeLevel: string | null;
+    studyTrack: string | null;
   }[];
   sections: {
     id: string;
     name: string;
     className: string;
+    schoolStage: string | null;
+    gradeLevel: string | null;
+    studyTrack: string | null;
+    studentsCount: number;
+    studentDetails: string[];
+    subjectDetails: string[];
+    scheduleDetails: string[];
   }[];
   subjectsCount: number;
+  sectionsCount: number;
   schedulesCount: number;
   gradesCount: number;
   examsCount: number;
+  scheduleDetails: string[];
+  examDetails: string[];
+  gradeDetails: string[];
+  deleteAssociations: DeleteAssociation[];
   createdAt: Date;
 };
 
 export type TeacherDetails = Teacher & {
-  subjects: {
-    id: string;
-    name: string;
-  }[];
+  subjects: TeacherListItem["subjects"];
+  sections: TeacherListItem["sections"];
   subjectsCount: number;
+  sectionsCount: number;
   schedulesCount: number;
   gradesCount: number;
   examsCount: number;
+  scheduleDetails: string[];
+  examDetails: string[];
+  gradeDetails: string[];
+  deleteAssociations: DeleteAssociation[];
 };
 
 export type TeacherValidationResult = {
@@ -176,6 +195,11 @@ export function getTeacherDeleteAssociations(input: {
   teacherSectionsCount?: number;
   gradesCount?: number;
   examsCount?: number;
+  subjectDetails?: string[];
+  sectionDetails?: string[];
+  scheduleDetails?: string[];
+  examDetails?: string[];
+  gradeDetails?: string[];
 }): DeleteCheckResult {
   const schedulesCount = input.schedulesCount ?? 0;
   const teacherSubjectsCount = input.teacherSubjectsCount ?? 0;
@@ -186,23 +210,23 @@ export function getTeacherDeleteAssociations(input: {
   const associations: DeleteAssociation[] = [];
 
   if (gradesCount > 0) {
-    associations.push({ label: "درجات طلاب", count: gradesCount });
+    associations.push({ label: "درجات طلاب", count: gradesCount, details: input.gradeDetails });
   }
 
   if (examsCount > 0) {
-    associations.push({ label: "امتحانات", count: examsCount });
+    associations.push({ label: "امتحانات", count: examsCount, details: input.examDetails });
   }
 
   if (schedulesCount > 0) {
-    associations.push({ label: "محاضرات في الجدول", count: schedulesCount });
+    associations.push({ label: "محاضرات في الجدول", count: schedulesCount, details: input.scheduleDetails });
   }
 
   if (teacherSubjectsCount > 0) {
-    associations.push({ label: "ربط بمواد دراسية", count: teacherSubjectsCount });
+    associations.push({ label: "ربط بمواد دراسية", count: teacherSubjectsCount, details: input.subjectDetails });
   }
 
   if (teacherSectionsCount > 0) {
-    associations.push({ label: "ربط بشُعب دراسية", count: teacherSectionsCount });
+    associations.push({ label: "ربط بشُعب دراسية", count: teacherSectionsCount, details: input.sectionDetails });
   }
 
   return {

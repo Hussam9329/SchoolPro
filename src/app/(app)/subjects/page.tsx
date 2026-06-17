@@ -1,13 +1,15 @@
 import { revalidatePath } from "next/cache";
-
 import { redirect } from "next/navigation";
 import { buildErrorRedirect } from "@/lib/redirect-message";
 import {
   BookOpen,
-  CheckCircle2,
+  ChevronDown,
   FileText,
+  GraduationCap,
   Layers3,
-  Search,
+  ListChecks,
+  School,
+  Users,
 } from "lucide-react";
 import { safeQuery } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -17,6 +19,7 @@ import { SmartAlert } from "@/components/shared/smart-alert";
 import {
   createSubject,
   deleteSubject,
+  getSubjects,
   getSubjectsCount,
   searchSubjects,
 } from "@/services/subject-service";
@@ -25,10 +28,19 @@ import {
   type SubjectListItem,
 } from "@/types/subject";
 import { DeleteConfirmButton } from "@/components/shared/delete-confirm-button";
+import {
+  getGradeStageLabel,
+  getStageLabel,
+  getSubjectLevelTrackLabel,
+  getTrackLabel,
+} from "@/lib/subject-catalog";
+import {
+  SubjectCreateFormClient,
+  SubjectLiveSearch,
+  type SubjectSearchItem,
+} from "./subjects-client";
 
 export const dynamic = "force-dynamic";
-
-
 
 type SubjectsPageProps = {
   searchParams?: Promise<{
@@ -47,69 +59,72 @@ export default async function SubjectsPage({
   const resolvedSearchParams = await searchParams;
 
   const query = resolvedSearchParams?.q?.trim() ?? "";
-  const [subjects, counts] = await Promise.all([
-    safeQuery(() => searchSubjects(query), []),
+  const [allSubjects, filteredSubjects, counts] = await Promise.all([
+    safeQuery(() => getSubjects(), []),
+    safeQuery(() => (query ? searchSubjects(query) : Promise.resolve([])), []),
     safeQuery(() => getSubjectsCount(), { total: 0, active: 0, inactive: 0 }),
   ]);
-
+  const subjects = query ? filteredSubjects : allSubjects;
   const hasSubjects = counts.total > 0;
+  const searchItems = allSubjects.map(toSubjectSearchItem);
 
   return (
     <div className="mx-auto flex w-full max-w-[1350px] flex-col gap-6">
-        <PageHeader
-          title="المواد الدراسية"
-          description="أضف المواد التي يتم تدريسها في المدرسة. هذه الخطوة تأتي قبل ربط المدرسين والصفوف والدرجات."
+      <PageHeader
+        title="المواد الدراسية"
+        description="أضف المواد بتصنيف واضح حسب المرحلة والتخصص والصف، ثم راقب ارتباطها بالمدرسين والصفوف والدرجات."
+        icon="book"
+        badge="الخطوة الثانية"
+      />
+
+      <SubjectsFeedback
+        saved={resolvedSearchParams?.saved}
+        deleted={resolvedSearchParams?.deleted}
+        error={resolvedSearchParams?.error}
+        reason={resolvedSearchParams?.reason}
+      />
+
+      <SubjectLiveSearch query={query} subjects={searchItems} />
+
+      <SmartAlert
+        tone="info"
+        title="تسمية المواد أصبحت أوضح"
+        description="عند إضافة مادة مثل الفيزياء للصف السادس العلمي ستُحفظ وتظهر تلقائيًا باسم: الفيزياء - السادس العلمي، حتى يسهل تمييزها في الجداول والدرجات والربط مع المدرسين."
+        actionLabel="الخطوة التالية: الصفوف"
+        actionHref="/classes"
+      />
+
+      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <SubjectCreateFormClient action={createSubjectAction} />
+
+        <div className="flex flex-col gap-6">
+          <SubjectStats total={counts.total} shown={subjects.length} />
+          <SubjectWorkflowTips />
+        </div>
+      </section>
+
+      {!hasSubjects ? (
+        <EmptyState
           icon="book"
-          badge="الخطوة الثانية"
+          title="لا توجد مواد دراسية بعد"
+          description="ابدأ بإضافة أول مادة من القوائم المنظمة حسب المرحلة والتخصص، أو اختر إضافة مادة خاصة عند الحاجة."
+          actionLabel="إضافة أول مادة"
+          actionHref="#subject-form"
+          secondaryLabel="إنشاء الصفوف"
+          secondaryHref="/classes"
         />
-
-        <SubjectsFeedback
-          saved={resolvedSearchParams?.saved}
-          deleted={resolvedSearchParams?.deleted}
-          error={resolvedSearchParams?.error}
-          reason={resolvedSearchParams?.reason}
+      ) : subjects.length === 0 ? (
+        <EmptyState
+          icon="search"
+          title="لا توجد نتائج مطابقة للبحث"
+          description="جرّب البحث باسم المادة، الصف، المرحلة، أو التخصص مثل: السادس العلمي أو متوسط عام."
+          actionLabel="عرض كل المواد"
+          actionHref="/subjects"
         />
-
-        <SmartAlert
-          tone="info"
-          title="المواد أولًا، ثم الصفوف"
-          description="إضافة المواد الدراسية في البداية تجعل ربط المدرسين، بناء الجدول، وإدخال الدرجات أسهل وأكثر تنظيمًا."
-          actionLabel="الخطوة التالية: الصفوف"
-          actionHref="/classes"
-        />
-
-        <section className="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
-          <SubjectCreateForm />
-
-          <div className="flex flex-col gap-6">
-            <SubjectStats total={counts.total} />
-
-            <SubjectSearchForm query={query} />
-          </div>
-        </section>
-
-        {!hasSubjects ? (
-          <EmptyState
-            icon="book"
-            title="لا توجد مواد دراسية بعد"
-            description="ابدأ بإضافة أول مادة مثل الرياضيات أو اللغة العربية أو العلوم. بعد ذلك يمكنك إنشاء الصفوف وربط المدرسين."
-            actionLabel="إضافة أول مادة"
-            actionHref="#subject-form"
-            secondaryLabel="إنشاء الصفوف"
-            secondaryHref="/classes"
-          />
-        ) : subjects.length === 0 ? (
-          <EmptyState
-            icon="search"
-            title="لا توجد نتائج مطابقة للبحث"
-            description="جرّب البحث باسم المادة، أو امسح حقل البحث لعرض كل المواد."
-            actionLabel="عرض كل المواد"
-            actionHref="/subjects"
-          />
-        ) : (
-          <SubjectList subjects={subjects} />
-        )}
-      </div>
+      ) : (
+        <SubjectList subjects={subjects} query={query} />
+      )}
+    </div>
   );
 }
 
@@ -118,6 +133,11 @@ async function createSubjectAction(formData: FormData) {
 
   const input: SubjectFormInput = {
     name: String(formData.get("name") ?? ""),
+    catalogSubject: String(formData.get("catalogSubject") ?? ""),
+    customSubjectName: String(formData.get("customSubjectName") ?? ""),
+    schoolStage: String(formData.get("schoolStage") ?? ""),
+    gradeLevel: String(formData.get("gradeLevel") ?? ""),
+    studyTrack: String(formData.get("studyTrack") ?? ""),
     description: String(formData.get("description") ?? ""),
   };
 
@@ -178,7 +198,7 @@ function SubjectsFeedback({
       <SmartAlert
         tone="success"
         title="تمت إضافة المادة بنجاح"
-        description="رائع، تم حفظ المادة الدراسية. يمكنك الآن إضافة مواد أخرى أو الانتقال إلى الصفوف."
+        description="تم حفظ المادة مع المرحلة والتخصص والصف ضمن الاسم النهائي، ويمكنك الآن ربطها بالصفوف والمدرسين."
       />
     );
   }
@@ -188,7 +208,7 @@ function SubjectsFeedback({
       <SmartAlert
         tone="success"
         title="تم حذف المادة الدراسية"
-        description="تم حذف المادة لأنها غير مرتبطة بدرجات أو صفوف أو مدرسين."
+        description="تم حذف المادة وجميع بياناتها المرتبطة حسب تأكيد الحذف."
       />
     );
   }
@@ -200,7 +220,7 @@ function SubjectsFeedback({
     } else if (error === "delete") {
       description = "لا يمكن حذف المادة إذا كانت مرتبطة بمدرسين أو صفوف أو درجات.";
     } else {
-      description = "تأكد من إدخال اسم المادة بشكل صحيح، وأن الاسم غير مكرر.";
+      description = "تأكد من اختيار المرحلة والتخصص والصف والمادة بشكل صحيح، أو اكتب اسم المادة الخاصة.";
     }
 
     return (
@@ -215,91 +235,12 @@ function SubjectsFeedback({
   return null;
 }
 
-function SubjectCreateForm() {
-  return (
-    <form
-      id="subject-form"
-      action={createSubjectAction}
-      className="app-card overflow-hidden"
-    >
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
-        <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700">
-            <BookOpen size={23} />
-          </div>
-
-          <div>
-            <h3 className="text-xl font-extrabold text-[var(--app-text)]">
-              إضافة مادة دراسية
-            </h3>
-
-            <p className="mt-1 text-sm leading-7 text-[var(--app-text-muted)]">
-              اكتب اسم المادة، ويمكنك إضافة وصف بسيط.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-5 p-6">
-        <div>
-          <label
-            htmlFor="name"
-            className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-          >
-            اسم المادة <span className="text-red-600">*</span>
-          </label>
-
-          <input
-            id="name"
-            name="name"
-            required
-            minLength={2}
-            maxLength={80}
-            placeholder="مثال: الرياضيات"
-            className="input"
-            autoComplete="off"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="description"
-            className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-          >
-            وصف مختصر
-          </label>
-
-          <textarea
-            id="description"
-            name="description"
-            rows={4}
-            maxLength={300}
-            placeholder="مثال: مادة الرياضيات للمرحلة الابتدائية..."
-            className="input min-h-[110px] resize-y leading-7"
-            autoComplete="off"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-7 text-[var(--app-text-muted)]">
-          بعد إضافة المواد، ستكون الخطوة التالية إنشاء الصفوف والشُعب.
-        </p>
-
-        <button type="submit" className="btn btn-primary">
-          <CheckCircle2 size={18} />
-          حفظ المادة
-        </button>
-      </div>
-    </form>
-  );
-}
-
 type SubjectStatsProps = {
   total: number;
+  shown: number;
 };
 
-function SubjectStats({ total }: SubjectStatsProps) {
+function SubjectStats({ total, shown }: SubjectStatsProps) {
   const stats = [
     {
       label: "إجمالي المواد",
@@ -307,10 +248,16 @@ function SubjectStats({ total }: SubjectStatsProps) {
       icon: Layers3,
       className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700",
     },
+    {
+      label: "المواد المعروضة الآن",
+      value: shown,
+      icon: ListChecks,
+      className: "bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700",
+    },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
       {stats.map((stat) => {
         const Icon = stat.icon;
 
@@ -343,50 +290,33 @@ function SubjectStats({ total }: SubjectStatsProps) {
   );
 }
 
-type SubjectSearchFormProps = {
-  query: string;
-};
-
-function SubjectSearchForm({ query }: SubjectSearchFormProps) {
+function SubjectWorkflowTips() {
   return (
-    <form action="/subjects" className="app-card p-5">
-      <label
-        htmlFor="q"
-        className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-      >
-        البحث في المواد
-      </label>
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search
-            size={18}
-            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--app-text-soft)]"
-          />
-
-          <input
-            id="q"
-            name="q"
-            defaultValue={query}
-            placeholder="ابحث باسم المادة..."
-            className="input pr-11"
-            autoComplete="off"
-          />
-        </div>
-
-        <button type="submit" className="btn btn-secondary">
-          بحث
-        </button>
+    <div className="app-card overflow-hidden">
+      <div className="border-b border-[var(--app-border-soft)] p-5">
+        <h3 className="text-lg font-extrabold text-[var(--app-text)]">
+          تسلسل إضافة المادة
+        </h3>
+        <p className="mt-1 text-sm leading-6 text-[var(--app-text-muted)]">
+          تم ترتيب الحقول حتى لا يتم إدخال مادة بدون مرحلة أو تخصص.
+        </p>
       </div>
-    </form>
+      <div className="grid gap-3 p-5 text-sm font-bold text-[var(--app-text-muted)]">
+        <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-900/30">1. اختر ابتدائي، متوسط، أو إعدادي.</div>
+        <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-900/30">2. اختر التخصص: عام، علمي، أو أدبي حسب المرحلة.</div>
+        <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-900/30">3. اختر المادة من القائمة أو اضغط إضافة مادة خاصة.</div>
+        <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-900/30">4. اختر الصف حتى يظهر الاسم النهائي تلقائيًا.</div>
+      </div>
+    </div>
   );
 }
 
 type SubjectListProps = {
   subjects: SubjectListItem[];
+  query: string;
 };
 
-function SubjectList({ subjects }: SubjectListProps) {
+function SubjectList({ subjects, query }: SubjectListProps) {
   return (
     <section className="app-card overflow-hidden">
       <div className="flex flex-col gap-2 border-b border-[var(--app-border-soft)] p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -396,11 +326,12 @@ function SubjectList({ subjects }: SubjectListProps) {
           </h3>
 
           <p className="mt-1 text-sm leading-6 text-[var(--app-text-muted)]">
-            يمكنك متابعة المواد وعدد الارتباطات الخاصة بها.
+            اضغط على تفاصيل المادة للاطلاع على المدرسين والصفوف وكل الارتباطات.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {query ? <span className="badge badge-warning">بحث: {query}</span> : null}
           <span className="badge badge-info">{subjects.length} مادة</span>
         </div>
       </div>
@@ -419,8 +350,17 @@ type SubjectRowProps = {
 };
 
 function SubjectRow({ subject }: SubjectRowProps) {
+  const stageLabel = getStageLabel(subject.schoolStage);
+  const trackLabel = getTrackLabel(subject.studyTrack);
+  const gradeLabel = getGradeStageLabel(subject.schoolStage, subject.gradeLevel);
+  const levelTrackLabel = getSubjectLevelTrackLabel(
+    subject.schoolStage,
+    subject.gradeLevel,
+    subject.studyTrack,
+  );
+
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-start">
       <div className="flex min-w-0 gap-4">
         <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
           <BookOpen size={24} />
@@ -431,12 +371,25 @@ function SubjectRow({ subject }: SubjectRowProps) {
             <h4 className="text-lg font-extrabold text-[var(--app-text)]">
               {subject.name}
             </h4>
+            {subject.subjectBaseName ? (
+              <span className="badge bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-100">
+                المادة الأصلية: {subject.subjectBaseName}
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-[var(--app-text-muted)]">
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold dark:bg-slate-900/50">
               <FileText size={14} />
               {formatDate(subject.createdAt)}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 font-bold text-sky-700 dark:bg-sky-950/40 dark:text-sky-100">
+              <School size={14} />
+              {stageLabel}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 font-bold text-teal-700 dark:bg-teal-950/40 dark:text-teal-100">
+              <GraduationCap size={14} />
+              {levelTrackLabel || gradeLabel}
             </span>
           </div>
 
@@ -451,26 +404,33 @@ function SubjectRow({ subject }: SubjectRowProps) {
           )}
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="badge bg-slate-100 text-slate-600">
+            <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-900/50 dark:text-slate-200">
               المدرسين: {subject.teachersCount}
             </span>
 
-            <span className="badge bg-slate-100 text-slate-600">
+            <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-900/50 dark:text-slate-200">
               الصفوف: {subject.classesCount}
             </span>
 
-            <span className="badge bg-slate-100 text-slate-600">
+            <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-900/50 dark:text-slate-200">
               الدرجات: {subject.gradesCount}
             </span>
 
-            <span className="badge bg-slate-100 text-slate-600">
+            <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-900/50 dark:text-slate-200">
               الجدول: {subject.schedulesCount}
             </span>
 
-            <span className="badge bg-slate-100 text-slate-600">
+            <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-900/50 dark:text-slate-200">
               الاختبارات: {subject.examsCount}
             </span>
           </div>
+
+          <SubjectDetailsPanel
+            subject={subject}
+            stageLabel={stageLabel}
+            trackLabel={trackLabel}
+            gradeLabel={gradeLabel}
+          />
         </div>
       </div>
 
@@ -484,6 +444,116 @@ function SubjectRow({ subject }: SubjectRowProps) {
       </div>
     </article>
   );
+}
+
+type SubjectDetailsPanelProps = {
+  subject: SubjectListItem;
+  stageLabel: string;
+  trackLabel: string;
+  gradeLabel: string;
+};
+
+function SubjectDetailsPanel({
+  subject,
+  stageLabel,
+  trackLabel,
+  gradeLabel,
+}: SubjectDetailsPanelProps) {
+  return (
+    <details className="mt-4 rounded-3xl border border-[var(--app-border-soft)] bg-white/70 p-4 open:bg-teal-50/45 dark:bg-slate-950/20 dark:open:bg-teal-950/20">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-extrabold text-teal-700 dark:text-teal-100">
+        <span className="inline-flex items-center gap-2">
+          <Users size={16} />
+          دخول إلى تفاصيل المادة
+        </span>
+        <ChevronDown size={18} className="transition details-open:rotate-180" />
+      </summary>
+
+      <div className="mt-4 grid gap-4">
+        <div className="grid gap-3 md:grid-cols-3">
+          <DetailStat label="المرحلة العامة" value={stageLabel} />
+          <DetailStat label="الصف الدراسي" value={gradeLabel} />
+          <DetailStat label="التخصص" value={trackLabel} />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <DetailList
+            title="المدرسون المرتبطون"
+            empty="لا يوجد مدرسون مرتبطون بهذه المادة."
+            values={subject.relatedTeachers.map((teacher) =>
+              teacher.specialty ? `${teacher.fullName} - ${teacher.specialty}` : teacher.fullName,
+            )}
+          />
+
+          <DetailList
+            title="الصفوف المرتبطة"
+            empty="لا توجد صفوف مرتبطة بهذه المادة."
+            values={subject.relatedClasses.map(formatRelatedClass)}
+          />
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <DetailStat label="محاضرات الجدول" value={subject.schedulesCount} />
+          <DetailStat label="الاختبارات" value={subject.examsCount} />
+          <DetailStat label="الدرجات المسجلة" value={subject.gradesCount} />
+        </div>
+      </div>
+    </details>
+  );
+}
+
+function DetailStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl border border-[var(--app-border-soft)] bg-white/80 p-4 dark:bg-slate-950/20">
+      <p className="text-xs font-extrabold text-[var(--app-text-soft)]">{label}</p>
+      <p className="mt-1 text-base font-extrabold text-[var(--app-text)]">{value}</p>
+    </div>
+  );
+}
+
+function DetailList({
+  title,
+  values,
+  empty,
+}: {
+  title: string;
+  values: string[];
+  empty: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[var(--app-border-soft)] bg-white/80 p-4 dark:bg-slate-950/20">
+      <p className="text-sm font-extrabold text-[var(--app-text)]">{title}</p>
+      {values.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {values.map((value) => (
+            <span key={value} className="badge bg-slate-100 text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+              {value}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm leading-6 text-[var(--app-text-soft)]">{empty}</p>
+      )}
+    </div>
+  );
+}
+
+function formatRelatedClass(schoolClass: { name: string; level: string | null }): string {
+  return schoolClass.level ? `${schoolClass.name} - ${schoolClass.level}` : schoolClass.name;
+}
+
+function toSubjectSearchItem(subject: SubjectListItem): SubjectSearchItem {
+  return {
+    id: subject.id,
+    name: subject.name,
+    subjectBaseName: subject.subjectBaseName,
+    schoolStage: subject.schoolStage,
+    gradeLevel: subject.gradeLevel,
+    studyTrack: subject.studyTrack,
+    description: subject.description,
+    teachersCount: subject.teachersCount,
+    classesCount: subject.classesCount,
+  };
 }
 
 function formatDate(date: Date | string): string {

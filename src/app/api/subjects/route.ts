@@ -43,6 +43,11 @@ export const POST = withApiAuth(async (request: NextRequest) => {
 
     const result = await createSubject({
       name: body.name ?? "",
+      catalogSubject: body.catalogSubject ?? "",
+      customSubjectName: body.customSubjectName ?? "",
+      schoolStage: body.schoolStage ?? "",
+      gradeLevel: body.gradeLevel ?? "",
+      studyTrack: body.studyTrack ?? "",
       description: body.description ?? "",
     });
 
@@ -63,6 +68,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
 });
 
 export const PUT = withApiAuth(async (request: NextRequest) => {
+  await ensureDatabase();
   try {
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get("id");
@@ -81,6 +87,11 @@ export const PUT = withApiAuth(async (request: NextRequest) => {
 
     const result = await updateSubject(id, {
       name: body.name ?? "",
+      catalogSubject: body.catalogSubject ?? "",
+      customSubjectName: body.customSubjectName ?? "",
+      schoolStage: body.schoolStage ?? "",
+      gradeLevel: body.gradeLevel ?? "",
+      studyTrack: body.studyTrack ?? "",
       description: body.description ?? "",
     });
 
@@ -101,6 +112,7 @@ export const PUT = withApiAuth(async (request: NextRequest) => {
 });
 
 export const DELETE = withApiAuth(async (request: NextRequest) => {
+  await ensureDatabase();
   try {
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get("id");

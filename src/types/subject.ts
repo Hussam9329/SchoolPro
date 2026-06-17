@@ -1,10 +1,22 @@
 import { type DeleteAssociation, type DeleteCheckResult } from "@/types/student";
+import {
+  buildSubjectDisplayName,
+  getCatalogSubjectOptions,
+  getGradeLevelOptions,
+  getStudyTrackOptions,
+  isSubjectStage,
+  isSubjectTrack,
+} from "@/lib/subject-catalog";
 
 export type { DeleteAssociation, DeleteCheckResult };
 
 export type Subject = {
   id: string;
   name: string;
+  subjectBaseName: string | null;
+  schoolStage: string | null;
+  gradeLevel: string | null;
+  studyTrack: string | null;
   description: string | null;
   isActive: boolean;
   createdAt: Date;
@@ -12,13 +24,34 @@ export type Subject = {
 };
 
 export type SubjectFormInput = {
-  name: string;
+  name?: string;
+  catalogSubject?: string;
+  customSubjectName?: string;
+  schoolStage?: string;
+  gradeLevel?: string;
+  studyTrack?: string;
   description?: string;
+};
+
+export type SubjectRelatedTeacher = {
+  id: string;
+  fullName: string;
+  specialty: string | null;
+};
+
+export type SubjectRelatedClass = {
+  id: string;
+  name: string;
+  level: string | null;
 };
 
 export type SubjectListItem = {
   id: string;
   name: string;
+  subjectBaseName: string | null;
+  schoolStage: string | null;
+  gradeLevel: string | null;
+  studyTrack: string | null;
   description: string | null;
   isActive: boolean;
   teachersCount: number;
@@ -26,6 +59,8 @@ export type SubjectListItem = {
   gradesCount: number;
   schedulesCount: number;
   examsCount: number;
+  relatedTeachers: SubjectRelatedTeacher[];
+  relatedClasses: SubjectRelatedClass[];
   deleteAssociations: DeleteAssociation[];
   createdAt: Date;
 };
@@ -38,15 +73,59 @@ export type SubjectValidationResult = {
 export function getEmptySubjectForm(): SubjectFormInput {
   return {
     name: "",
+    catalogSubject: "",
+    customSubjectName: "",
+    schoolStage: "",
+    gradeLevel: "",
+    studyTrack: "",
     description: "",
   };
 }
 
+function hasStructuredSubjectFields(input: SubjectFormInput): boolean {
+  return Boolean(
+    input.catalogSubject?.trim() ||
+    input.customSubjectName?.trim() ||
+    input.schoolStage?.trim() ||
+    input.gradeLevel?.trim() ||
+    input.studyTrack?.trim(),
+  );
+}
+
+function resolveSubjectBaseName(input: SubjectFormInput): string {
+  return (
+    input.customSubjectName?.trim() ||
+    input.catalogSubject?.trim() ||
+    input.name?.trim() ||
+    ""
+  );
+}
+
 export function normalizeSubjectInput(
   input: SubjectFormInput,
-): SubjectFormInput {
+): SubjectFormInput & { subjectBaseName?: string } {
+  const subjectBaseName = resolveSubjectBaseName(input);
+  const schoolStage = input.schoolStage?.trim() || undefined;
+  const gradeLevel = input.gradeLevel?.trim() || undefined;
+  const studyTrack = input.studyTrack?.trim() || undefined;
+  const shouldBuildDisplayName = Boolean(schoolStage || gradeLevel || studyTrack);
+  const displayName = shouldBuildDisplayName
+    ? buildSubjectDisplayName({
+        baseName: subjectBaseName,
+        schoolStage,
+        gradeLevel,
+        studyTrack,
+      })
+    : subjectBaseName;
+
   return {
-    name: input.name.trim(),
+    name: displayName,
+    subjectBaseName,
+    catalogSubject: input.catalogSubject?.trim() || undefined,
+    customSubjectName: input.customSubjectName?.trim() || undefined,
+    schoolStage,
+    gradeLevel,
+    studyTrack,
     description: input.description?.trim() || undefined,
   };
 }
@@ -56,17 +135,67 @@ export function validateSubjectInput(
 ): SubjectValidationResult {
   const normalized = normalizeSubjectInput(input);
   const errors: Partial<Record<keyof SubjectFormInput, string>> = {};
+  const structured = hasStructuredSubjectFields(input);
+  const availableTrackValues = getStudyTrackOptions(normalized.schoolStage).map((option) => option.value);
+  const availableGradeValues = getGradeLevelOptions(normalized.schoolStage).map((option) => option.value);
+  const availableSubjectValues = getCatalogSubjectOptions(
+    normalized.schoolStage,
+    normalized.studyTrack,
+  ).map((option) => option.value);
 
-  if (!normalized.name) {
-    errors.name = "اسم المادة مطلوب.";
+  if (!normalized.subjectBaseName) {
+    errors.catalogSubject = "يجب اختيار المادة أو إضافة مادة خاصة.";
   }
 
-  if (normalized.name && normalized.name.length < 2) {
-    errors.name = "اسم المادة يجب أن يحتوي على حرفين على الأقل.";
+  if (normalized.subjectBaseName && normalized.subjectBaseName.length < 2) {
+    errors.catalogSubject = "اسم المادة يجب أن يحتوي على حرفين على الأقل.";
   }
 
-  if (normalized.name && normalized.name.length > 80) {
-    errors.name = "اسم المادة طويل جدًا.";
+  if (normalized.subjectBaseName && normalized.subjectBaseName.length > 80) {
+    errors.catalogSubject = "اسم المادة طويل جدًا.";
+  }
+
+  if (normalized.name && normalized.name.length > 140) {
+    errors.name = "اسم المادة مع تفاصيلها طويل جدًا.";
+  }
+
+  if (structured) {
+    if (!normalized.schoolStage) {
+      errors.schoolStage = "يجب اختيار المرحلة العامة: ابتدائي، متوسط، أو إعدادي.";
+    } else if (!isSubjectStage(normalized.schoolStage)) {
+      errors.schoolStage = "المرحلة المختارة غير صحيحة.";
+    }
+
+    if (!normalized.studyTrack) {
+      errors.studyTrack = "يجب اختيار التخصص: عام، علمي، أو أدبي.";
+    } else if (!isSubjectTrack(normalized.studyTrack)) {
+      errors.studyTrack = "التخصص المختار غير صحيح.";
+    } else if (
+      normalized.schoolStage &&
+      availableTrackValues.length > 0 &&
+      !availableTrackValues.includes(normalized.studyTrack)
+    ) {
+      errors.studyTrack = "هذا التخصص غير مناسب للمرحلة المختارة.";
+    }
+
+    if (!normalized.gradeLevel) {
+      errors.gradeLevel = "يجب اختيار الصف/المرحلة الدراسية للمادة.";
+    } else if (
+      normalized.schoolStage &&
+      availableGradeValues.length > 0 &&
+      !availableGradeValues.includes(normalized.gradeLevel)
+    ) {
+      errors.gradeLevel = "الصف المختار غير مناسب للمرحلة العامة.";
+    }
+
+    if (
+      normalized.catalogSubject &&
+      !normalized.customSubjectName &&
+      availableSubjectValues.length > 0 &&
+      !availableSubjectValues.includes(normalized.catalogSubject)
+    ) {
+      errors.catalogSubject = "المادة المختارة غير مناسبة للتخصص المحدد.";
+    }
   }
 
   if (normalized.description && normalized.description.length > 300) {

@@ -69,9 +69,31 @@ function toSubjectListItem(subject: any): SubjectListItem {
     classDetails,
   });
 
+  const relatedTeachers = (subject.teacherSubjects ?? [])
+    .map((teacherSubject: any) => teacherSubject.teacher)
+    .filter((teacher: any) => Boolean(teacher?.id && teacher?.fullName))
+    .map((teacher: any) => ({
+      id: teacher.id,
+      fullName: teacher.fullName,
+      specialty: teacher.specialty ?? null,
+    }));
+
+  const relatedClasses = (subject.classSubjects ?? [])
+    .map((classSubject: any) => classSubject.class)
+    .filter((schoolClass: any) => Boolean(schoolClass?.id && schoolClass?.name))
+    .map((schoolClass: any) => ({
+      id: schoolClass.id,
+      name: schoolClass.name,
+      level: schoolClass.level ?? null,
+    }));
+
   return {
     id: subject.id,
     name: subject.name,
+    subjectBaseName: subject.subjectBaseName ?? null,
+    schoolStage: subject.schoolStage ?? null,
+    gradeLevel: subject.gradeLevel ?? null,
+    studyTrack: subject.studyTrack ?? null,
     description: subject.description,
     isActive: subject.isActive,
     teachersCount,
@@ -79,6 +101,8 @@ function toSubjectListItem(subject: any): SubjectListItem {
     gradesCount,
     schedulesCount,
     examsCount,
+    relatedTeachers,
+    relatedClasses,
     deleteAssociations: deleteCheck.associations,
     createdAt: subject.createdAt,
   };
@@ -202,6 +226,10 @@ export async function createSubject(
     const subject = await db.subject.create({
       data: {
         name: data.name,
+        subjectBaseName: data.subjectBaseName ?? data.name,
+        schoolStage: data.schoolStage ?? null,
+        gradeLevel: data.gradeLevel ?? null,
+        studyTrack: data.studyTrack ?? null,
         description: data.description ?? null,
         isActive: true,
       },
@@ -270,6 +298,10 @@ export async function updateSubject(
       },
       data: {
         name: data.name,
+        subjectBaseName: data.subjectBaseName ?? data.name,
+        schoolStage: data.schoolStage ?? null,
+        gradeLevel: data.gradeLevel ?? null,
+        studyTrack: data.studyTrack ?? null,
         description: data.description ?? null,
         isActive: true,
       },
@@ -377,6 +409,26 @@ export async function searchSubjects(query: string): Promise<SubjectListItem[]> 
         },
         {
           description: {
+            contains: normalizedQuery,
+          },
+        },
+        {
+          subjectBaseName: {
+            contains: normalizedQuery,
+          },
+        },
+        {
+          schoolStage: {
+            contains: normalizedQuery,
+          },
+        },
+        {
+          gradeLevel: {
+            contains: normalizedQuery,
+          },
+        },
+        {
+          studyTrack: {
             contains: normalizedQuery,
           },
         },

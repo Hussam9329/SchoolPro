@@ -77,6 +77,20 @@ export async function getStudents(
           class: true,
         },
       },
+      grades: {
+        take: 6,
+        orderBy: { createdAt: "desc" },
+        include: { subject: true, exam: true },
+      },
+      attendanceRecords: {
+        take: 6,
+        orderBy: { createdAt: "desc" },
+        include: { schedule: { include: { subject: true, teacher: true } } },
+      },
+      payments: {
+        take: 6,
+        orderBy: { createdAt: "desc" },
+      },
       _count: {
         select: {
           grades: true,
@@ -397,6 +411,9 @@ export async function deleteStudent(
       id,
     },
     include: {
+      grades: { take: 10, orderBy: { createdAt: "desc" }, include: { subject: true, exam: true } },
+      attendanceRecords: { take: 10, orderBy: { createdAt: "desc" }, include: { schedule: { include: { subject: true } } } },
+      payments: { take: 10, orderBy: { createdAt: "desc" } },
       _count: {
         select: {
           grades: true,
@@ -437,10 +454,13 @@ export async function deleteStudent(
 
 export async function getStudentDeleteInfo(
   id: string,
-): Promise<StudentServiceResult<{ associations: { label: string; count: number }[] }>> {
+): Promise<StudentServiceResult<{ associations: { label: string; count: number; details?: string[] }[] }>> {
   const student = await db.student.findUnique({
     where: { id },
     include: {
+      grades: { take: 10, orderBy: { createdAt: "desc" }, include: { subject: true, exam: true } },
+      attendanceRecords: { take: 10, orderBy: { createdAt: "desc" }, include: { schedule: { include: { subject: true } } } },
+      payments: { take: 10, orderBy: { createdAt: "desc" } },
       _count: {
         select: {
           grades: true,
@@ -459,6 +479,20 @@ export async function getStudentDeleteInfo(
     gradesCount: student._count.grades,
     attendanceCount: student._count.attendanceRecords,
     feesCount: student._count.payments,
+    gradeDetails: (student.grades ?? []).map((grade: any) => {
+      const subjectName = grade.subject?.name ?? "مادة غير محددة";
+      const examTitle = grade.exam?.title ? ` / ${grade.exam.title}` : "";
+      return `${subjectName}${examTitle}: ${Number(grade.score ?? 0)} من ${Number(grade.maxScore ?? 0)}`;
+    }),
+    attendanceDetails: (student.attendanceRecords ?? []).map((record: any) => {
+      const dateLabel = record.date ? new Date(record.date).toLocaleDateString("ar-IQ-u-nu-latn") : "تاريخ غير محدد";
+      const subjectName = record.schedule?.subject?.name ? ` / ${record.schedule.subject.name}` : "";
+      return `${dateLabel}${subjectName}: ${record.status}`;
+    }),
+    feeDetails: (student.payments ?? []).map((payment: any) => {
+      const dateLabel = payment.createdAt ? new Date(payment.createdAt).toLocaleDateString("ar-IQ-u-nu-latn") : "تاريخ غير محدد";
+      return `${payment.feeTitle ?? "قسط"}: ${Number(payment.amount ?? 0).toLocaleString("ar-IQ-u-nu-latn")} د.ع / ${dateLabel}`;
+    }),
   });
 
   return { ok: true, data: { associations: check.associations }, message: "" };
@@ -716,6 +750,23 @@ type StudentWithRelations = Prisma.StudentGetPayload<{
         class: true;
       };
     };
+    grades: {
+      include: {
+        subject: true;
+        exam: true;
+      };
+    };
+    attendanceRecords: {
+      include: {
+        schedule: {
+          include: {
+            subject: true;
+            teacher: true;
+          };
+        };
+      };
+    };
+    payments: true;
     _count: {
       select: {
         grades: true;
@@ -745,6 +796,20 @@ function toStudentListItem(student: StudentWithRelations): StudentListItem {
     gradesCount: student._count.grades,
     attendanceCount: student._count.attendanceRecords,
     feesCount: student._count.payments,
+    gradeDetails: (student.grades ?? []).map((grade: any) => {
+      const subjectName = grade.subject?.name ?? "مادة غير محددة";
+      const examTitle = grade.exam?.title ? ` / ${grade.exam.title}` : "";
+      return `${subjectName}${examTitle}: ${Number(grade.score ?? 0)} من ${Number(grade.maxScore ?? 0)}`;
+    }),
+    attendanceDetails: (student.attendanceRecords ?? []).map((record: any) => {
+      const dateLabel = record.date ? new Date(record.date).toLocaleDateString("ar-IQ-u-nu-latn") : "تاريخ غير محدد";
+      const subjectName = record.schedule?.subject?.name ? ` / ${record.schedule.subject.name}` : "";
+      return `${dateLabel}${subjectName}: ${record.status}`;
+    }),
+    feeDetails: (student.payments ?? []).map((payment: any) => {
+      const dateLabel = payment.createdAt ? new Date(payment.createdAt).toLocaleDateString("ar-IQ-u-nu-latn") : "تاريخ غير محدد";
+      return `${payment.feeTitle ?? "قسط"}: ${Number(payment.amount ?? 0).toLocaleString("ar-IQ-u-nu-latn")} د.ع / ${dateLabel}`;
+    }),
     enrollmentDate: student.enrollmentDate,
     createdAt: student.createdAt,
   };

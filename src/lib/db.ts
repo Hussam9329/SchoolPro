@@ -196,6 +196,8 @@ const schemaStatements = [
     "updatedAt" timestamptz NOT NULL DEFAULT now(),
     UNIQUE ("classId", "academicYear")
   )`,
+  `ALTER TABLE "class_fee_settings" ADD COLUMN IF NOT EXISTS "customFeeTitle" text NULL`,
+  `ALTER TABLE "class_fee_settings" ADD COLUMN IF NOT EXISTS "customFeeAmount" numeric NOT NULL DEFAULT 0`,
   `CREATE TABLE IF NOT EXISTS "payments" (
     "id" text PRIMARY KEY DEFAULT gen_random_uuid()::text,
     "feeTitle" text NOT NULL,

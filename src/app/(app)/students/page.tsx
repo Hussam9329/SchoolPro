@@ -9,7 +9,6 @@ import {
   FileText,
   GraduationCap,
   MessageCircle,
-  Search,
   UserRound,
   Users,
 } from "lucide-react";
@@ -41,6 +40,7 @@ import {
 import { CopyCodeButton, GenerateBadgeButton } from "@/components/students/student-actions";
 import { DeleteConfirmButton } from "@/components/shared/delete-confirm-button";
 import { StudentQrImage } from "@/components/students/student-qr-image";
+import { StudentLiveSearch } from "./student-live-search";
 import {
   getClassDisplayName,
   type ClassListItem,
@@ -137,7 +137,22 @@ export default async function StudentsPage({
               withoutSection={counts.withoutSection}
             />
 
-            <StudentSearchForm query={query} status={status} />
+            <StudentLiveSearch
+              initialQuery={query}
+              initialStatus={status}
+              students={students.map((student) => ({
+                id: student.id,
+                fullName: student.fullName,
+                studentCode: student.studentCode,
+                phone: student.phone,
+                guardianName: student.guardianName,
+                guardianPhone: student.guardianPhone,
+                className: student.className,
+                classLevel: student.classLevel,
+                sectionName: student.sectionName,
+                status: student.status,
+              }))}
+            />
           </div>
         </section>
 
@@ -643,54 +658,6 @@ function StudentsStats({
   );
 }
 
-type StudentSearchFormProps = {
-  query: string;
-  status: string;
-};
-
-function StudentSearchForm({ query, status }: StudentSearchFormProps) {
-  return (
-    <form action="/students" className="app-card p-5">
-      <label
-        htmlFor="q"
-        className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-      >
-        البحث والتصفية
-      </label>
-
-      <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-        <div className="relative">
-          <Search
-            size={18}
-            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--app-text-soft)]"
-          />
-
-          <input
-            id="q"
-            name="q"
-            autoComplete="off"
-            defaultValue={query}
-            placeholder="اسم الطالب، الرقم، الهاتف، ولي الأمر..."
-            className="input pr-11"
-          />
-        </div>
-
-        <select id="student-status-filter" name="status" autoComplete="off" defaultValue={status} className="input">
-          <option value="">كل الحالات</option>
-          <option value="active">مستمر</option>
-          <option value="inactive">متوقف</option>
-          <option value="graduated">متخرج</option>
-          <option value="transferred">منقول</option>
-        </select>
-
-        <button type="submit" className="btn btn-secondary">
-          بحث
-        </button>
-      </div>
-    </form>
-  );
-}
-
 type StudentsListProps = {
   students: StudentListItem[];
 };
@@ -752,9 +719,9 @@ function StudentRow({ student }: StudentRowProps) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-lg font-extrabold text-[var(--app-text)]">
+            <a href={`/students/${student.id}`} className="text-lg font-extrabold text-[var(--app-text)] transition hover:text-[var(--app-primary)]">
               {student.fullName}
-            </h4>
+            </a>
 
             <span className={["badge", statusClass].join(" ")}>
               {getStudentStatusLabel(student.status)}
@@ -876,9 +843,9 @@ function StudentRow({ student }: StudentRowProps) {
           itemId={student.id}
           entityName="الطالب"
           associations={[
-            ...(student.gradesCount > 0 ? [{ label: "درجات", count: student.gradesCount }] : []),
-            ...(student.attendanceCount > 0 ? [{ label: "سجلات حضور", count: student.attendanceCount }] : []),
-            ...(student.feesCount > 0 ? [{ label: "أقساط ومدفوعات", count: student.feesCount }] : []),
+            ...(student.gradesCount > 0 ? [{ label: "درجات", count: student.gradesCount, details: student.gradeDetails }] : []),
+            ...(student.attendanceCount > 0 ? [{ label: "سجلات حضور", count: student.attendanceCount, details: student.attendanceDetails }] : []),
+            ...(student.feesCount > 0 ? [{ label: "أقساط ومدفوعات", count: student.feesCount, details: student.feeDetails }] : []),
           ]}
         />
       </div>

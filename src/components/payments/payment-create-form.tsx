@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, CreditCard, Search, Shirt, WalletCards } from "lucide-react";
+import { CheckCircle2, CreditCard, PackageCheck, Search, Shirt, WalletCards } from "lucide-react";
 import type { StudentFeePlan } from "@/services/class-fee-service";
-import { PAYMENT_METHODS, formatMoney, getCurrentAcademicYear } from "@/types/payment";
+import { PAYMENT_METHODS, formatMoney, getAcademicYearOptions, getCurrentAcademicYear } from "@/types/payment";
 import { getStudentClassDisplay } from "@/types/student";
 
 type PaymentCreateFormProps = {
@@ -11,11 +11,14 @@ type PaymentCreateFormProps = {
   action: (formData: FormData) => void;
 };
 
+type FeeSelection = "tuition" | "uniform" | "custom" | "total";
+
 export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) {
   const academicYear = getCurrentAcademicYear();
+  const yearOptions = getAcademicYearOptions(academicYear);
   const [query, setQuery] = useState("");
   const [studentId, setStudentId] = useState("");
-  const [feeType, setFeeType] = useState<"tuition" | "uniform">("tuition");
+  const [feeType, setFeeType] = useState<FeeSelection>("tuition");
   const [paymentMode, setPaymentMode] = useState<"full" | "installment">("full");
   const [installmentAmount, setInstallmentAmount] = useState("");
 
@@ -28,40 +31,31 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
     const value = query.trim().toLowerCase();
     if (!value) return students.slice(0, 8);
     return students
-      .filter((student) => student.studentName.toLowerCase().includes(value))
+      .filter((student) => {
+        const haystack = `${student.studentName} ${student.className ?? ""} ${student.sectionName ?? ""}`.toLowerCase();
+        return haystack.includes(value);
+      })
       .slice(0, 10);
   }, [query, students]);
 
-  const targetAmount = selectedStudent
-    ? feeType === "uniform"
-      ? selectedStudent.uniformAmount
-      : selectedStudent.tuitionRemaining || selectedStudent.tuitionAmount
-    : 0;
-
-  const paidAmount = feeType === "uniform"
-    ? targetAmount
-    : paymentMode === "full"
-      ? targetAmount
-      : Number(installmentAmount || 0);
-
-  const status = feeType === "uniform" || paymentMode === "full" || paidAmount >= targetAmount
-    ? "paid"
-    : "partial";
-
-  const feeTitle = selectedStudent
-    ? feeType === "uniform"
-      ? `زي مدرسي - ${selectedStudent.studentName}`
-      : `رسوم دراسية - ${selectedStudent.studentName}`
-    : "";
+  const targetAmount = selectedStudent ? getTargetAmount(selectedStudent, feeType) : 0;
+  const isInstallmentAllowed = feeType === "tuition";
+  const paidAmount = isInstallmentAllowed && paymentMode === "installment"
+    ? Number(installmentAmount || 0)
+    : targetAmount;
+  const status = isInstallmentAllowed && paymentMode === "installment" && paidAmount < targetAmount
+    ? "partial"
+    : "paid";
+  const feeTitle = selectedStudent ? buildFeeTitle(selectedStudent, feeType) : "";
 
   function pickStudent(student: StudentFeePlan) {
     setStudentId(student.studentId);
     setQuery(student.studentName);
   }
 
-  function handleFeeTypeChange(value: "tuition" | "uniform") {
+  function handleFeeTypeChange(value: FeeSelection) {
     setFeeType(value);
-    if (value === "uniform") {
+    if (value !== "tuition") {
       setPaymentMode("full");
       setInstallmentAmount("");
     }
@@ -85,9 +79,9 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
           </div>
 
           <div>
-            <h3 className="text-xl font-extrabold text-[var(--app-text)]">تسجيل قسط أو زي</h3>
+            <h3 className="text-xl font-extrabold text-[var(--app-text)]">تسجيل قسط أو رسوم</h3>
             <p className="mt-1 text-sm leading-7 text-[var(--app-text-muted)]">
-              ابحث باسم الطالب فقط، ثم اختر نوع الرسوم وسيتم جلب المبلغ حسب صفه تلقائيًا.
+              ابحث عن الطالب ثم اختر رسوم دراسية، زي، رسوم مخصصة، أو توتال كامل لكل شيء.
             </p>
           </div>
         </div>
@@ -114,15 +108,18 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
           />
 
           {query && !studentId && filteredStudents.length > 0 && (
-            <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-[var(--app-border-soft)] bg-white p-2 shadow-xl">
+            <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-[var(--app-border-soft)] bg-white p-2 shadow-xl">
               {filteredStudents.map((student) => (
                 <button
                   key={student.studentId}
                   type="button"
                   onClick={() => pickStudent(student)}
-                  className="block w-full rounded-xl px-4 py-3 text-right text-sm font-extrabold text-[var(--app-text)] transition hover:bg-teal-50"
+                  className="block w-full rounded-xl px-4 py-3 text-right text-sm transition hover:bg-teal-50"
                 >
-                  {student.studentName}
+                  <span className="block font-extrabold text-[var(--app-text)]">{student.studentName}</span>
+                  <span className="text-xs font-bold text-[var(--app-text-muted)]">
+                    {getStudentClassDisplay({ className: student.className, classLevel: student.classLevel, sectionName: student.sectionName })}
+                  </span>
                 </button>
               ))}
             </div>
@@ -134,21 +131,23 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
             <p>
               الطالب <span className="font-extrabold">{selectedStudent.studentName}</span> في الصف <span className="font-extrabold">{getStudentClassDisplay({ className: selectedStudent.className, classLevel: selectedStudent.classLevel, sectionName: selectedStudent.sectionName })}</span>.
             </p>
-            <p>
-              الرسوم الدراسية الكاملة: <span className="font-extrabold">{formatMoney(selectedStudent.tuitionAmount)}</span> — المدفوع: <span className="font-extrabold">{formatMoney(selectedStudent.tuitionPaid)}</span> — المتبقي: <span className="font-extrabold">{formatMoney(selectedStudent.tuitionRemaining)}</span>.
-            </p>
-            <p>
-              الزي المدرسي: <span className="font-extrabold">{formatMoney(selectedStudent.uniformAmount)}</span> — الحالة: <span className="font-extrabold">{selectedStudent.uniformPaid ? "مدفوع" : "غير مدفوع"}</span>.
-            </p>
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <PlanLine label="الرسوم الدراسية" value={`${formatMoney(selectedStudent.tuitionAmount)} / متبقي ${formatMoney(selectedStudent.tuitionRemaining)}`} />
+              <PlanLine label="الزي المدرسي" value={`${formatMoney(selectedStudent.uniformAmount)} / ${selectedStudent.uniformPaid ? "مدفوع" : `متبقي ${formatMoney(Math.max(0, selectedStudent.uniformAmount - selectedStudent.uniformPaidAmount))}`}`} />
+              <PlanLine label={selectedStudent.customFeeTitle || "رسوم مخصصة"} value={`${formatMoney(selectedStudent.customFeeAmount)} / متبقي ${formatMoney(selectedStudent.customRemaining)}`} />
+              <PlanLine label="التوتال الكامل" value={`${formatMoney(selectedStudent.packageTotalAmount)} / متبقي ${formatMoney(selectedStudent.packageRemainingAmount)}`} />
+            </div>
           </div>
         )}
 
         <div className="grid gap-5 md:grid-cols-2">
           <div>
             <label htmlFor="feeType" className="mb-2 block text-sm font-extrabold text-[var(--app-text)]">نوع الرسوم</label>
-            <select id="feeType" name="feeType" value={feeType} onChange={(event) => handleFeeTypeChange(event.target.value as "tuition" | "uniform")} className="input">
+            <select id="feeType" name="feeType" value={feeType} onChange={(event) => handleFeeTypeChange(event.target.value as FeeSelection)} className="input">
               <option value="tuition">رسوم دراسية</option>
               <option value="uniform">زي مدرسي</option>
+              <option value="custom">رسوم مخصصة</option>
+              <option value="total">توتال / كامل</option>
             </select>
           </div>
 
@@ -162,7 +161,7 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
           </div>
         </div>
 
-        {feeType === "tuition" && (
+        {feeType === "tuition" ? (
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label htmlFor="paymentMode" className="mb-2 block text-sm font-extrabold text-[var(--app-text)]">آلية دفع الرسوم الدراسية</label>
@@ -172,23 +171,18 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
               </select>
             </div>
 
-            {paymentMode === "installment" && (
+            {paymentMode === "installment" ? (
               <div>
                 <label htmlFor="installmentAmount" className="mb-2 block text-sm font-extrabold text-[var(--app-text)]">مبلغ الدفعة</label>
                 <input id="installmentAmount" name="installmentAmount" value={installmentAmount} onChange={(event) => setInstallmentAmount(event.target.value)} type="number" min={1} max={targetAmount || undefined} className="input" placeholder="مثال: 250000" required />
-                <p className="mt-1.5 text-xs leading-5 text-[var(--app-text-muted)]">
-                  إذا كان مبلغ الدفعة مساويًا للمتبقي فسيتم تسجيلها كرسوم كاملة تلقائيًا.
-                </p>
               </div>
-            )}
+            ) : null}
           </div>
-        )}
-
-        {feeType === "uniform" && (
+        ) : (
           <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-sm leading-7 text-sky-900">
             <div className="flex items-start gap-2">
-              <Shirt size={18} className="mt-1 shrink-0" />
-              <p>سيتم تسجيل مبلغ الزي المحدد للصف مباشرة وربطه بالطالب في سجل الدفعات.</p>
+              {feeType === "uniform" ? <Shirt size={18} className="mt-1 shrink-0" /> : feeType === "total" ? <PackageCheck size={18} className="mt-1 shrink-0" /> : <WalletCards size={18} className="mt-1 shrink-0" />}
+              <p>{getFeeHint(feeType, selectedStudent)}</p>
             </div>
           </div>
         )}
@@ -196,7 +190,9 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
         <div className="grid gap-5 md:grid-cols-3">
           <div>
             <label htmlFor="academicYear" className="mb-2 block text-sm font-extrabold text-[var(--app-text)]">السنة الدراسية</label>
-            <input id="academicYear" name="academicYear" maxLength={20} className="input" defaultValue={academicYear} />
+            <select id="academicYear" name="academicYear" className="input" defaultValue={academicYear}>
+              {yearOptions.map((year) => <option key={year} value={year}>{year}</option>)}
+            </select>
           </div>
 
           <div>
@@ -222,12 +218,41 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
       </div>
 
       <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-7 text-[var(--app-text-muted)]">لا تُعرض رموز الطلاب أو التفاصيل الزائدة في قائمة الاختيار؛ التفاصيل تظهر بعد اختيار الطالب فقط.</p>
+        <p className="text-sm leading-7 text-[var(--app-text-muted)]">التوتال الكامل يسدد الرسوم الدراسية والزي والرسوم المخصصة معًا في سجل واحد واضح.</p>
         <button type="submit" className="btn btn-primary" disabled={!selectedStudent || targetAmount <= 0 || (feeType === "tuition" && paymentMode === "installment" && Number(installmentAmount || 0) <= 0)}>
           <CheckCircle2 size={18} />
           حفظ الدفعة
         </button>
       </div>
     </form>
+  );
+}
+
+function getTargetAmount(student: StudentFeePlan, feeType: FeeSelection) {
+  if (feeType === "uniform") return Math.max(0, student.uniformAmount - student.uniformPaidAmount);
+  if (feeType === "custom") return student.customRemaining || student.customFeeAmount;
+  if (feeType === "total") return student.packageRemainingAmount || student.packageTotalAmount;
+  return student.tuitionRemaining || student.tuitionAmount;
+}
+
+function buildFeeTitle(student: StudentFeePlan, feeType: FeeSelection) {
+  if (feeType === "uniform") return `زي مدرسي - ${student.studentName}`;
+  if (feeType === "custom") return `${student.customFeeTitle || "رسوم مخصصة"} - ${student.studentName}`;
+  if (feeType === "total") return `توتال القسط الكامل - ${student.studentName}`;
+  return `رسوم دراسية - ${student.studentName}`;
+}
+
+function getFeeHint(feeType: FeeSelection, student: StudentFeePlan | null) {
+  if (feeType === "uniform") return "سيتم تسجيل مبلغ الزي المتبقي للطالب حسب صفه.";
+  if (feeType === "total") return "سيتم تسجيل كل المطلوب على الطالب دفعة واحدة: رسوم دراسية + زي + أي رسوم مخصصة.";
+  return `سيتم تسجيل ${student?.customFeeTitle || "الرسوم المخصصة"} حسب إعدادات صف الطالب.`;
+}
+
+function PlanLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-white/70 px-4 py-2">
+      <span className="font-extrabold">{label}: </span>
+      <span>{value}</span>
+    </div>
   );
 }

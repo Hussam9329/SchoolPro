@@ -18,6 +18,8 @@ export type FeeType =
   | "transport"
   | "books"
   | "uniform"
+  | "custom"
+  | "total"
   | "activity"
   | "exam"
   | "other";
@@ -151,6 +153,14 @@ export const FEE_TYPES: {
   {
     value: "uniform",
     label: "زي مدرسي",
+  },
+  {
+    value: "custom",
+    label: "رسوم مخصصة",
+  },
+  {
+    value: "total",
+    label: "توتال / كامل",
   },
   {
     value: "activity",
@@ -614,6 +624,22 @@ export function getCurrentAcademicYear(): string {
   }
 
   return `${year - 1}-${year}`;
+}
+
+export function getAcademicYearOptions(baseYear = getCurrentAcademicYear()): string[] {
+  const [startText] = baseYear.split("-");
+  const start = Number(startText) || new Date().getFullYear();
+  const current = `${start}-${start + 1}`;
+  const previous = `${start - 1}-${start}`;
+  const next = `${start + 1}-${start + 2}`;
+
+  return Array.from(new Set([
+    current,
+    previous,
+    next,
+    `الصيفي ${start + 1}`,
+    `Summer School ${start + 1}`,
+  ]));
 }
 
 export function canDeletePayment(): {

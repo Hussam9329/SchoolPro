@@ -197,12 +197,17 @@ CREATE TABLE IF NOT EXISTS "class_fee_settings" (
   "classId" text NOT NULL REFERENCES "school_classes"("id") ON DELETE CASCADE,
   "tuitionAmount" numeric NOT NULL DEFAULT 0,
   "uniformAmount" numeric NOT NULL DEFAULT 0,
+  "customFeeTitle" text NULL,
+  "customFeeAmount" numeric NOT NULL DEFAULT 0,
   "academicYear" text NOT NULL,
   "notes" text NULL,
   "createdAt" timestamptz NOT NULL DEFAULT now(),
   "updatedAt" timestamptz NOT NULL DEFAULT now(),
   UNIQUE ("classId", "academicYear")
 );
+
+ALTER TABLE "class_fee_settings" ADD COLUMN IF NOT EXISTS "customFeeTitle" text NULL;
+ALTER TABLE "class_fee_settings" ADD COLUMN IF NOT EXISTS "customFeeAmount" numeric NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS "payments" (
   "id" text PRIMARY KEY DEFAULT gen_random_uuid()::text,

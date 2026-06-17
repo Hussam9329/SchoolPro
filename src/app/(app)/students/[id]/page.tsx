@@ -11,7 +11,8 @@ import { getStudentDetails } from "@/services/student-service";
 import { getGradesByStudentId } from "@/services/grade-service";
 import { getAttendanceByStudentId } from "@/services/attendance-service";
 import { getPaymentsByStudentId, getStudentPaymentSummary } from "@/services/payment-service";
-import { formatMoney } from "@/types/payment";
+import { getStudentFeePlan } from "@/services/class-fee-service";
+import { formatMoney, getCurrentAcademicYear } from "@/types/payment";
 import { getStudentClassDisplay, getStudentStatusLabel } from "@/types/student";
 import { formatAttendanceTime } from "@/types/attendance";
 
@@ -25,11 +26,12 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
   const student = await getStudentDetails(id);
   if (!student) notFound();
 
-  const [grades, attendance, payments, paymentSummary] = await Promise.all([
+  const [grades, attendance, payments, paymentSummary, feePlanResult] = await Promise.all([
     safeQuery(() => getGradesByStudentId(id), []),
     safeQuery(() => getAttendanceByStudentId(id), []),
     safeQuery(() => getPaymentsByStudentId(id), []),
     safeQuery(() => getStudentPaymentSummary(id), { totalPaid: 0, totalPending: 0, totalRefunded: 0, paymentsCount: 0 }),
+    safeQuery(() => getStudentFeePlan(id, getCurrentAcademicYear()), { ok: false as const, message: "لا توجد خطة أقساط." }),
   ]);
 
   const classDisplay = getStudentClassDisplay({
@@ -41,6 +43,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
   const gradeStats = calculateGradeStats(grades);
   const attendanceStats = calculateAttendanceStats(attendance);
   const financialStats = calculateFinancialStats(payments, paymentSummary.totalPaid);
+  const feePlan = feePlanResult.ok ? feePlanResult.data : null;
   const averageLabel = gradeStats.average == null ? "لا توجد درجات" : `${gradeStats.average}%`;
   const attendanceSummary = `${attendanceStats.presentCount} حضور / ${attendanceStats.absentCount} غياب / ${attendanceStats.lateCount} تأخير`;
   const financialSummary = `مدفوع ${formatMoney(financialStats.totalPaid)} — متبقّي ${formatMoney(financialStats.totalRemaining)} — الزي ${financialStats.uniformPaid ? "مدفوع" : "غير مدفوع"}`;
@@ -118,6 +121,21 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
           </div>
         </section>
 
+        {feePlan ? (
+          <section data-report-section="fee-plan" className="app-card overflow-hidden">
+            <div className="border-b border-[var(--app-border-soft)] p-6">
+              <h3 className="text-xl font-extrabold text-[var(--app-text)]">تفاصيل أقساط الطالب للسنة الحالية</h3>
+              <p className="mt-1 text-sm text-[var(--app-text-muted)]">السنة: {feePlan.academicYear} — التوتال الكامل: {formatMoney(feePlan.packageTotalAmount)} — المتبقي: {formatMoney(feePlan.packageRemainingAmount)}</p>
+            </div>
+            <div className="grid gap-3 p-6 md:grid-cols-4">
+              <FeePlanBox label="الرسوم الدراسية" total={feePlan.tuitionAmount} paid={feePlan.tuitionPaid} remaining={feePlan.tuitionRemaining} />
+              <FeePlanBox label="الزي المدرسي" total={feePlan.uniformAmount} paid={feePlan.uniformPaidAmount} remaining={Math.max(0, feePlan.uniformAmount - feePlan.uniformPaidAmount)} />
+              <FeePlanBox label={feePlan.customFeeTitle || "رسوم مخصصة"} total={feePlan.customFeeAmount} paid={feePlan.customPaid} remaining={feePlan.customRemaining} />
+              <FeePlanBox label="التوتال الكامل" total={feePlan.packageTotalAmount} paid={feePlan.packagePaidAmount} remaining={feePlan.packageRemainingAmount} />
+            </div>
+          </section>
+        ) : null}
+
         <section data-report-section="financial" className="app-card overflow-hidden">
           <div className="border-b border-[var(--app-border-soft)] p-6">
             <h3 className="text-xl font-extrabold text-[var(--app-text)]">التقرير المالي</h3>
@@ -167,6 +185,17 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
           </div>
         </section>
       </div>
+  );
+}
+
+function FeePlanBox({ label, total, paid, remaining }: { label: string; total: number; paid: number; remaining: number }) {
+  return (
+    <div className="rounded-3xl border border-[var(--app-border-soft)] bg-slate-50 p-4 text-sm leading-7">
+      <p className="font-extrabold text-[var(--app-text)]">{label}</p>
+      <p className="text-[var(--app-text-muted)]">الكامل: <span className="font-extrabold text-[var(--app-text)]">{formatMoney(total)}</span></p>
+      <p className="text-[var(--app-text-muted)]">المدفوع: <span className="font-extrabold text-emerald-700">{formatMoney(paid)}</span></p>
+      <p className="text-[var(--app-text-muted)]">المتبقي: <span className="font-extrabold text-rose-700">{formatMoney(remaining)}</span></p>
+    </div>
   );
 }
 

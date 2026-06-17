@@ -180,12 +180,12 @@ async function createPaymentAction(formData: FormData) {
   const paymentMode = String(formData.get("paymentMode") ?? "full");
   const resolved = resolvePaymentAmounts(rawInput);
   const feeType = rawInput.feeType ?? "tuition";
-  const isUniform = feeType === "uniform";
+  const isPackageFee = ["uniform", "custom", "total"].includes(feeType);
   const isFullTuition = paymentMode === "full" || resolved.paidAmount >= resolved.finalAmount;
   let status = rawInput.status ?? "paid";
   let paidAmount = resolved.paidAmount;
 
-  if (isUniform || isFullTuition) {
+  if (isPackageFee || isFullTuition) {
     status = "paid";
     paidAmount = resolved.finalAmount;
   } else {
@@ -193,9 +193,17 @@ async function createPaymentAction(formData: FormData) {
     paidAmount = Math.max(0, Math.min(resolved.paidAmount, Math.max(0, resolved.finalAmount - 1)));
   }
 
+  const fallbackTitle = feeType === "uniform"
+    ? "زي مدرسي"
+    : feeType === "custom"
+      ? "رسوم مخصصة"
+      : feeType === "total"
+        ? "توتال القسط الكامل"
+        : "رسوم دراسية";
+
   const input: PaymentFormInput = {
     ...rawInput,
-    feeTitle: rawInput.feeTitle || (isUniform ? "زي مدرسي" : "رسوم دراسية"),
+    feeTitle: rawInput.feeTitle || fallbackTitle,
     feeType,
     amount: String(paidAmount),
     originalAmount: String(resolved.originalAmount),
@@ -721,7 +729,18 @@ function PaymentRow({ payment }: PaymentRowProps) {
           action={deletePaymentAction}
           itemId={payment.id}
           entityName="الدفعة"
-          associations={[]}
+          associations={[
+            {
+              label: "تفاصيل الدفعة",
+              count: 1,
+              details: [
+                `الطالب: ${payment.studentName}`,
+                `نوع الرسم: ${getFeeTypeLabel(payment.feeType)}`,
+                `المبلغ: ${payment.formattedAmount}`,
+                payment.academicYear ? `السنة: ${payment.academicYear}` : "بدون سنة محددة",
+              ],
+            },
+          ]}
         />
       </div>
     </article>

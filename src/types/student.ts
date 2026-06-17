@@ -48,6 +48,9 @@ export type StudentListItem = {
   gradesCount: number;
   attendanceCount: number;
   feesCount: number;
+  gradeDetails: string[];
+  attendanceDetails: string[];
+  feeDetails: string[];
   enrollmentDate: Date;
   createdAt: Date;
 };
@@ -270,6 +273,9 @@ export function getStudentDeleteAssociations(input: {
   gradesCount?: number;
   attendanceCount?: number;
   feesCount?: number;
+  gradeDetails?: string[];
+  attendanceDetails?: string[];
+  feeDetails?: string[];
 }): DeleteCheckResult {
   const gradesCount = input.gradesCount ?? 0;
   const attendanceCount = input.attendanceCount ?? 0;
@@ -278,15 +284,15 @@ export function getStudentDeleteAssociations(input: {
   const associations: DeleteAssociation[] = [];
 
   if (gradesCount > 0) {
-    associations.push({ label: "درجات", count: gradesCount });
+    associations.push({ label: "درجات", count: gradesCount, details: input.gradeDetails });
   }
 
   if (attendanceCount > 0) {
-    associations.push({ label: "سجلات حضور", count: attendanceCount });
+    associations.push({ label: "سجلات حضور", count: attendanceCount, details: input.attendanceDetails });
   }
 
   if (feesCount > 0) {
-    associations.push({ label: "أقساط ومدفوعات", count: feesCount });
+    associations.push({ label: "أقساط ومدفوعات", count: feesCount, details: input.feeDetails });
   }
 
   return {

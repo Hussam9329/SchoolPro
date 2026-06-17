@@ -146,6 +146,8 @@ export default async function SchedulesPage({
           </div>
         </section>
 
+        {hasSchedules ? <SchoolTimetableView schedules={schedules} /> : null}
+
         {!hasSchedules ? (
           <EmptyState
             icon="schedule"
@@ -441,6 +443,109 @@ function ScheduleSearchForm({ query, dayOfWeek }: ScheduleSearchFormProps) {
   );
 }
 
+
+function SchoolTimetableView({ schedules }: { schedules: ScheduleListItem[] }) {
+  const activeSchedules = schedules.filter((schedule) => schedule.isActive);
+  const slots = Array.from(
+    new Set(activeSchedules.map((schedule) => `${schedule.startTime}__${schedule.endTime}`)),
+  ).sort((a, b) => a.localeCompare(b));
+  const today = getTodayInputValue();
+
+  if (activeSchedules.length === 0 || slots.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="app-card overflow-hidden">
+      <div className="flex flex-col gap-2 border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/60 to-sky-50/30 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-xl font-extrabold text-[var(--app-text)]">
+            الجدول الأسبوعي الاحترافي
+          </h3>
+          <p className="mt-1 text-sm leading-6 text-[var(--app-text-muted)]">
+            عرض شبكي واضح مثل برامج المعاهد، لكن مرتب للمدرسة: اليوم، الوقت، المادة، المدرس، الصف، الشعبة، ورابط حضور مباشر لكل درس.
+          </p>
+        </div>
+        <span className="badge badge-info">{activeSchedules.length} درس فعّال</span>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1120px] border-separate border-spacing-0 text-sm">
+          <thead>
+            <tr className="bg-white">
+              <th className="sticky right-0 z-10 border-b border-l border-[var(--app-border-soft)] bg-white px-4 py-4 text-right font-extrabold text-[var(--app-text-muted)]">
+                الوقت
+              </th>
+              {WEEK_DAYS.map((day) => (
+                <th key={day.value} className="border-b border-l border-[var(--app-border-soft)] px-4 py-4 text-center font-extrabold text-[var(--app-text-muted)]">
+                  {day.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {slots.map((slot) => {
+              const [startTime, endTime] = slot.split("__");
+              return (
+                <tr key={slot} className="align-top">
+                  <td className="sticky right-0 z-10 border-b border-l border-[var(--app-border-soft)] bg-slate-50 px-4 py-4 font-extrabold text-[var(--app-text)]">
+                    {formatScheduleTime(startTime, endTime)}
+                  </td>
+                  {WEEK_DAYS.map((day) => {
+                    const cellSchedules = activeSchedules.filter(
+                      (schedule) => schedule.dayOfWeek === day.value && schedule.startTime === startTime && schedule.endTime === endTime,
+                    );
+                    return (
+                      <td key={`${slot}-${day.value}`} className="min-w-[190px] border-b border-l border-[var(--app-border-soft)] bg-white p-3">
+                        {cellSchedules.length === 0 ? (
+                          <div className="flex min-h-[116px] items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/70 text-xs font-bold text-[var(--app-text-soft)]">
+                            فراغ
+                          </div>
+                        ) : (
+                          <div className="grid gap-2">
+                            {cellSchedules.map((schedule) => (
+                              <div key={schedule.id} className="rounded-3xl border border-teal-100 bg-gradient-to-br from-white to-teal-50/70 p-3 shadow-sm">
+                                <p className="font-extrabold text-[var(--app-text)]">{schedule.subjectName}</p>
+                                <p className="mt-1 text-xs font-bold leading-5 text-[var(--app-text-muted)]">
+                                  {schedule.className} / شعبة {schedule.sectionName}
+                                </p>
+                                <p className="mt-1 text-xs font-bold leading-5 text-teal-700">
+                                  {schedule.teacherName}{schedule.room ? ` — ${schedule.room}` : ""}
+                                </p>
+                                <a
+                                  href={`/attendance/session?scheduleId=${schedule.id}&date=${today}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="mt-3 inline-flex w-full items-center justify-center rounded-2xl bg-teal-600 px-3 py-2 text-xs font-extrabold text-white transition hover:bg-teal-700"
+                                >
+                                  رابط حضور هذا الدرس
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function getTodayInputValue(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Baghdad",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 type SchedulesListProps = {
   schedules: ScheduleListItem[];
 };
@@ -547,6 +652,15 @@ function ScheduleRow({ schedule }: ScheduleRowProps) {
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+        <a
+          href={`/attendance/session?scheduleId=${schedule.id}&date=${getTodayInputValue()}`}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-primary w-full"
+        >
+          رابط الحضور
+        </a>
+
         <form action={toggleScheduleAction}>
           <input type="hidden" name="id" value={schedule.id} />
 

@@ -154,7 +154,10 @@ export default async function ExamsPage({ searchParams }: ExamsPageProps) {
                         <span className="rounded-full bg-slate-100 px-3 py-1">النوع: {EXAM_TYPES.find((type) => type.value === exam.type)?.label ?? exam.type}</span>
                       </div>
                     </div>
-                    <a href={`/exams/${exam.id}/grades`} className="btn btn-primary justify-center">إدخال الدرجات</a>
+                    <div className="flex flex-col gap-2">
+                      <a href={`/exams/${exam.id}/grades`} className="btn btn-primary justify-center">إدخال الدرجات</a>
+                      <a href={`/exams/teacher-grades?examId=${exam.id}`} target="_blank" rel="noreferrer" className="btn btn-secondary justify-center">رابط المدرس</a>
+                    </div>
                   </article>
                 ))}
               </div>

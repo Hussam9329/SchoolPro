@@ -17,6 +17,8 @@ type ExamGradeEntryTableProps = {
   passScore: number;
   students: ExamGradeEntryStudent[];
   action: (formData: FormData) => void | Promise<void>;
+  enableAutoSave?: boolean;
+  submitLabel?: string;
 };
 
 function normalize(value: string) {
@@ -29,6 +31,8 @@ export function ExamGradeEntryTable({
   passScore,
   students,
   action,
+  enableAutoSave = true,
+  submitLabel = "حفظ الدرجات",
 }: ExamGradeEntryTableProps) {
   const [query, setQuery] = useState("");
   const [scoreByStudentId, setScoreByStudentId] = useState<Record<string, string>>(() =>
@@ -62,6 +66,11 @@ export function ExamGradeEntryTable({
     const score = Number(scoreText);
     if (!Number.isFinite(score) || score < 0 || score > maxScore) {
       setMessageByStudentId((prev) => ({ ...prev, [studentId]: `الدرجة يجب أن تكون بين 0 و ${maxScore}.` }));
+      return;
+    }
+
+    if (!enableAutoSave) {
+      setMessageByStudentId((prev) => ({ ...prev, [studentId]: "جاهزة للحفظ — اضغط زر حفظ الدرجات بالأسفل." }));
       return;
     }
 
@@ -236,10 +245,12 @@ export function ExamGradeEntryTable({
 
       <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">
-          يتم الحفظ تلقائيًا عند الخروج من حقل الدرجة أو الملاحظات. الدرجات المحفوظة تبقى مقفلة حتى تضغط تعديل.
+          {enableAutoSave
+            ? "يتم الحفظ تلقائيًا عند الخروج من حقل الدرجة أو الملاحظات. الدرجات المحفوظة تبقى مقفلة حتى تضغط تعديل."
+            : "واجهة المدرس تحفظ كل الدرجات مرة واحدة عند الضغط على زر الحفظ، حتى تكون العملية أبسط وأوضح."}
         </p>
         <button type="submit" className="btn btn-primary">
-          <CheckCircle2 size={18} /> حفظ الدرجات
+          <CheckCircle2 size={18} /> {submitLabel}
         </button>
       </div>
     </form>

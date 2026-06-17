@@ -129,6 +129,7 @@ const NUMERIC_COLUMNS = new Set([
   "finalAmount",
   "tuitionAmount",
   "uniformAmount",
+  "customFeeAmount",
 ]);
 
 function getTableModelName(tableName: string): string {

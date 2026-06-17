@@ -323,9 +323,21 @@ function AttendanceSessionSelector({
           </select>
         </div>
 
-        <button type="submit" className="btn btn-primary justify-center">
-          اختيار المحاضرة
-        </button>
+        <div className="flex flex-col gap-2">
+          <button type="submit" className="btn btn-primary justify-center">
+            اختيار المحاضرة
+          </button>
+          {selectedScheduleId ? (
+            <a
+              href={`/attendance/session?scheduleId=${selectedScheduleId}&date=${selectedDate}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-secondary justify-center"
+            >
+              رابط خاص للمدرس
+            </a>
+          ) : null}
+        </div>
       </div>
     </form>
   );
@@ -1044,7 +1056,18 @@ function AttendanceRow({ record }: AttendanceRowProps) {
             action={deleteAttendanceAction}
             itemId={record.id}
             entityName="سجل الحضور"
-            associations={[]}
+            associations={[
+              {
+                label: "تفاصيل السجل",
+                count: 1,
+                details: [
+                  `الطالب: ${record.studentName}`,
+                  `التاريخ: ${formatAttendanceShortDate(new Date(record.date))}`,
+                  record.subjectName ? `المادة: ${record.subjectName}` : "بدون مادة مرتبطة",
+                  record.teacherName ? `المدرس: ${record.teacherName}` : "بدون مدرس مرتبط",
+                ],
+              },
+            ]}
           />
         )}
       </div>

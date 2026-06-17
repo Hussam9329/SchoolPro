@@ -55,6 +55,9 @@ export function generatePaymentReceiptHtml(
   .value { color: #0f172a; font-weight: 800; font-size: 14px; }
   .total-row { background: #ccfbf1; margin: 16px -32px; padding: 16px 32px; }
   .total-row .label, .total-row .value { font-size: 18px; color: #0f766e; }
+  .signatures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 24px; }
+  .signature { border: 1px dashed #cbd5e1; border-radius: 16px; min-height: 92px; padding: 12px; color: #475569; font-weight: 800; font-size: 13px; display: flex; flex-direction: column; justify-content: space-between; }
+  .signature-line { border-top: 1px solid #cbd5e1; padding-top: 8px; color: #94a3b8; font-size: 12px; }
   .footer { text-align: center; padding: 16px; color: #94a3b8; font-size: 12px; }
   .print-btn { display: block; margin: 20px auto; padding: 12px 32px; background: #0f766e; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Tajawal', sans-serif; }
   @media print { .print-btn { display: none; } body { background: #fff; padding: 0; } .receipt { box-shadow: none; } }
@@ -83,6 +86,12 @@ export function generatePaymentReceiptHtml(
     <div class="row"><span class="label">طريقة الدفع</span><span class="value">${payment.method === "cash" ? "نقدًا" : payment.method === "zain_cash" ? "زين كاش" : payment.method === "bank_transfer" ? "تحويل مصرفي" : payment.method}</span></div>
     <div class="row"><span class="label">تاريخ الدفع</span><span class="value">${payment.paidAt ? formatDate(payment.paidAt) : formatDate(payment.createdAt)}</span></div>
     ${payment.notes ? `<div class="row"><span class="label">ملاحظات</span><span class="value">${payment.notes}</span></div>` : ""}
+    <div class="signatures">
+      <div class="signature"><span>توقيع ولي الأمر</span><span class="signature-line">الاسم والتوقيع</span></div>
+      <div class="signature"><span>توقيع المحاسب</span><span class="signature-line">الاسم والتوقيع</span></div>
+      <div class="signature"><span>توقيع المعاون / المدير</span><span class="signature-line">الاسم والتوقيع</span></div>
+      <div class="signature"><span>ختم المدرسة</span><span class="signature-line">الختم الرسمي</span></div>
+    </div>
   </div>
   <div class="footer">ثانوية SchoolPro — تم إنشاء هذه الفاتورة إلكترونيًا</div>
 </div>

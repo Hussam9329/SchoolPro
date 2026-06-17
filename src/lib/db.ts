@@ -49,12 +49,18 @@ const schemaStatements = [
     "id" text PRIMARY KEY DEFAULT gen_random_uuid()::text,
     "name" text NOT NULL,
     "level" text NULL,
+    "schoolStage" text NULL,
+    "gradeLevel" text NULL,
+    "studyTrack" text NULL,
     "description" text NULL,
     "isActive" boolean NOT NULL DEFAULT true,
     "createdAt" timestamptz NOT NULL DEFAULT now(),
     "updatedAt" timestamptz NOT NULL DEFAULT now(),
     UNIQUE ("name", "level")
   )`,
+  `ALTER TABLE "school_classes" ADD COLUMN IF NOT EXISTS "schoolStage" text NULL`,
+  `ALTER TABLE "school_classes" ADD COLUMN IF NOT EXISTS "gradeLevel" text NULL`,
+  `ALTER TABLE "school_classes" ADD COLUMN IF NOT EXISTS "studyTrack" text NULL`,
   `CREATE TABLE IF NOT EXISTS "sections" (
     "id" text PRIMARY KEY DEFAULT gen_random_uuid()::text,
     "name" text NOT NULL,

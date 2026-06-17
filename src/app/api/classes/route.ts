@@ -39,6 +39,11 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     const result = await createClass({
       name: body.name ?? "",
       level: body.level ?? "",
+      schoolStage: body.schoolStage ?? "",
+      gradeLevel: body.gradeLevel ?? "",
+      studyTrack: body.studyTrack ?? "",
+      customGradeName: body.customGradeName ?? "",
+      description: body.description ?? "",
     });
     if (!result.ok) {
       return NextResponse.json(result, { status: 400 });
@@ -68,6 +73,11 @@ export const PUT = withApiAuth(async (request: NextRequest) => {
     const result = await updateClass(id, {
       name: body.name ?? "",
       level: body.level ?? "",
+      schoolStage: body.schoolStage ?? "",
+      gradeLevel: body.gradeLevel ?? "",
+      studyTrack: body.studyTrack ?? "",
+      customGradeName: body.customGradeName ?? "",
+      description: body.description ?? "",
     });
 
     if (!result.ok) {

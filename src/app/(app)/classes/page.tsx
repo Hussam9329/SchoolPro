@@ -8,7 +8,6 @@ import {
   GraduationCap,
   Layers3,
   ListTree,
-  Search,
   Users,
 } from "lucide-react";
 import { safeQuery } from "@/lib/db";
@@ -26,6 +25,7 @@ import {
   getClassesCount,
   getSections,
   searchClasses,
+  filterSubjectsForClass,
 } from "@/services/class-service";
 import { getActiveSubjects } from "@/services/subject-service";
 import {
@@ -38,14 +38,47 @@ import {
   type SectionListItem,
 } from "@/types/class";
 import { DeleteConfirmButton } from "@/components/shared/delete-confirm-button";
+import { ClassCreateFields, ClassFilterControls, SectionNameSelect } from "./classes-client";
 
 export const dynamic = "force-dynamic";
 
+type ClassFilters = {
+  stage?: string;
+  track?: string;
+  classId?: string;
+  sectionId?: string;
+};
 
+function applyClassFilters(classes: ClassListItem[], sections: SectionListItem[], filters: ClassFilters): ClassListItem[] {
+  const selectedSection = filters.sectionId
+    ? sections.find((section) => section.id === filters.sectionId)
+    : null;
+  const classId = filters.classId || selectedSection?.classId || "";
+
+  return classes.filter((schoolClass) => {
+    if (filters.stage && schoolClass.schoolStage !== filters.stage) return false;
+    if (filters.track && schoolClass.studyTrack !== filters.track) return false;
+    if (classId && schoolClass.id !== classId) return false;
+    return true;
+  });
+}
+
+function applySectionFilters(sections: SectionListItem[], filters: ClassFilters): SectionListItem[] {
+  return sections.filter((section) => {
+    if (filters.stage && section.schoolStage !== filters.stage) return false;
+    if (filters.track && section.studyTrack !== filters.track) return false;
+    if (filters.classId && section.classId !== filters.classId) return false;
+    if (filters.sectionId && section.id !== filters.sectionId) return false;
+    return true;
+  });
+}
 
 type ClassesPageProps = {
   searchParams?: Promise<{
-    q?: string;
+    stage?: string;
+    track?: string;
+    classId?: string;
+    sectionId?: string;
     classSaved?: string;
     sectionSaved?: string;
     deleted?: string;
@@ -53,6 +86,10 @@ type ClassesPageProps = {
     reason?: string;
     draft_name?: string;
     draft_level?: string;
+    draft_schoolStage?: string;
+    draft_gradeLevel?: string;
+    draft_studyTrack?: string;
+    draft_customGradeName?: string;
     draft_description?: string;
     draft_classId?: string;
     draft_capacity?: string;
@@ -63,16 +100,23 @@ export default async function ClassesPage({ searchParams }: ClassesPageProps) {
   await requireAdmin();
   const resolvedSearchParams = await searchParams;
 
-  const query = resolvedSearchParams?.q?.trim() ?? "";
+  const filters = {
+    stage: resolvedSearchParams?.stage?.trim() ?? "",
+    track: resolvedSearchParams?.track?.trim() ?? "",
+    classId: resolvedSearchParams?.classId?.trim() ?? "",
+    sectionId: resolvedSearchParams?.sectionId?.trim() ?? "",
+  };
 
-  const [classes, activeClasses, sections, counts, subjects] = await Promise.all([
-    safeQuery(() => searchClasses(query), []),
+  const [allClasses, activeClasses, allSections, counts, subjects] = await Promise.all([
+    safeQuery(() => searchClasses(""), []),
     safeQuery(() => getActiveClasses(), []),
     safeQuery(() => getSections(), []),
     safeQuery(() => getClassesCount(), { total: 0, active: 0, inactive: 0, sections: 0 }),
     safeQuery(() => getActiveSubjects(), []),
   ]);
 
+  const classes = applyClassFilters(allClasses, allSections, filters);
+  const sections = applySectionFilters(allSections, filters);
   const hasClasses = counts.total > 0;
 
   return (
@@ -104,6 +148,10 @@ export default async function ClassesPage({ searchParams }: ClassesPageProps) {
           <ClassCreateForm draft={{
             name: resolvedSearchParams?.draft_name ?? "",
             level: resolvedSearchParams?.draft_level ?? "",
+            schoolStage: resolvedSearchParams?.draft_schoolStage ?? "",
+            gradeLevel: resolvedSearchParams?.draft_gradeLevel ?? "",
+            studyTrack: resolvedSearchParams?.draft_studyTrack ?? "",
+            customGradeName: resolvedSearchParams?.draft_customGradeName ?? "",
             description: resolvedSearchParams?.draft_description ?? "",
           }} />
 
@@ -113,7 +161,7 @@ export default async function ClassesPage({ searchParams }: ClassesPageProps) {
               sections={counts.sections}
             />
 
-            <ClassSearchForm query={query} />
+            <ClassFilterControls classes={allClasses} sections={allSections} filters={filters} />
           </div>
         </section>
 
@@ -145,7 +193,7 @@ export default async function ClassesPage({ searchParams }: ClassesPageProps) {
           <EmptyState
             icon="search"
             title="لا توجد صفوف مطابقة للبحث"
-            description="جرّب البحث باسم الصف أو المرحلة، أو امسح البحث لعرض كل الصفوف."
+            description="غيّر المرحلة أو التخصص أو الصف من قوائم البحث المخصصة، أو صفّر البحث لعرض كل الصفوف."
             actionLabel="عرض كل الصفوف"
             actionHref="/classes"
           />
@@ -162,13 +210,17 @@ async function createClassAction(formData: FormData) {
   const input: ClassFormInput = {
     name: String(formData.get("name") ?? ""),
     level: String(formData.get("level") ?? ""),
+    schoolStage: String(formData.get("schoolStage") ?? ""),
+    gradeLevel: String(formData.get("gradeLevel") ?? ""),
+    studyTrack: String(formData.get("studyTrack") ?? ""),
+    customGradeName: String(formData.get("customGradeName") ?? ""),
     description: String(formData.get("description") ?? ""),
   };
 
   const result = await createClass(input);
 
   if (!result.ok) {
-    redirect(buildFormErrorRedirect("/classes", "create-class", formData, ["name", "level", "description"], result.message));
+    redirect(buildFormErrorRedirect("/classes", "create-class", formData, ["name", "level", "schoolStage", "gradeLevel", "studyTrack", "customGradeName", "description"], result.message));
   }
 
   revalidatePath("/");
@@ -338,7 +390,7 @@ function ClassesFeedback({
   return null;
 }
 
-function ClassCreateForm({ draft }: { draft?: { name?: string; level?: string; description?: string } }) {
+function ClassCreateForm({ draft }: { draft?: { name?: string; level?: string; schoolStage?: string; gradeLevel?: string; studyTrack?: string; customGradeName?: string; description?: string } }) {
   return (
     <form
       id="class-form"
@@ -364,51 +416,14 @@ function ClassCreateForm({ draft }: { draft?: { name?: string; level?: string; d
       </div>
 
       <div className="grid gap-5 p-6">
-        <div>
-          <label
-            htmlFor="class-name"
-            className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-          >
-            اسم الصف <span className="text-red-600">*</span>
-          </label>
-
-          <input
-            id="class-name"
-            name="name"
-            autoComplete="off"
-            required
-            minLength={2}
-            maxLength={80}
-            placeholder="مثال: الأول الابتدائي"
-            className="input"
-            defaultValue={draft?.name ?? ""}
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="class-level"
-            className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-          >
-            المرحلة
-          </label>
-
-          <select
-            id="class-level"
-            name="level"
-            autoComplete="off"
-            required
-            className="input"
-            defaultValue={draft?.level ?? ""}
-          >
-            <option value="" disabled>
-              اختر المرحلة
-            </option>
-            <option value="ابتدائية">ابتدائية</option>
-            <option value="متوسطة">متوسطة</option>
-            <option value="إعدادية">إعدادية</option>
-          </select>
-        </div>
+        <ClassCreateFields
+          draft={{
+            schoolStage: draft?.schoolStage ?? "",
+            gradeLevel: draft?.gradeLevel ?? "",
+            studyTrack: draft?.studyTrack ?? "",
+            customGradeName: draft?.customGradeName ?? "",
+          }}
+        />
 
         <div>
           <label
@@ -508,25 +523,7 @@ function SectionCreateForm({ classes, draft }: SectionCreateFormProps) {
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="section-name"
-              className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-            >
-              اسم الشعبة <span className="text-red-600">*</span>
-            </label>
-
-            <input
-              id="section-name"
-              name="name"
-              autoComplete="off"
-              required
-              maxLength={30}
-              placeholder="مثال: أ"
-              className="input"
-              defaultValue={draft?.name ?? ""}
-            />
-          </div>
+<SectionNameSelect defaultValue={draft?.name ?? ""} />
 
           <div>
             <label
@@ -643,45 +640,6 @@ function ClassesStats({ total, sections }: ClassesStatsProps) {
   );
 }
 
-type ClassSearchFormProps = {
-  query: string;
-};
-
-function ClassSearchForm({ query }: ClassSearchFormProps) {
-  return (
-    <form action="/classes" className="app-card p-5">
-      <label
-        htmlFor="q"
-        className="mb-2 block text-sm font-extrabold text-[var(--app-text)]"
-      >
-        البحث في الصفوف
-      </label>
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search
-            size={18}
-            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--app-text-soft)]"
-          />
-
-          <input
-            id="q"
-            name="q"
-            autoComplete="off"
-            defaultValue={query}
-            placeholder="ابحث باسم الصف أو المرحلة..."
-            className="input pr-11"
-          />
-        </div>
-
-        <button type="submit" className="btn btn-secondary">
-          بحث
-        </button>
-      </div>
-    </form>
-  );
-}
-
 type SectionsPanelProps = {
   sections: SectionListItem[];
 };
@@ -763,24 +721,59 @@ function SectionRow({ section }: SectionRowProps) {
         </div>
       </div>
 
+      <details className="rounded-2xl border border-[var(--app-border-soft)] bg-white/70 p-4 lg:col-span-2">
+        <summary className="cursor-pointer text-sm font-extrabold text-[var(--primary)] hover:underline">
+          عرض تفاصيل الشعبة
+        </summary>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <DetailList title="الطلاب" items={section.studentDetails} empty="لا يوجد طلاب داخل هذه الشعبة." />
+          <DetailList title="المدرسون" items={section.teacherDetails} empty="لا يوجد مدرسون مرتبطون بهذه الشعبة." />
+          <DetailList title="المواد في الجدول" items={section.subjectDetails} empty="لا توجد مواد مرتبطة بجدول هذه الشعبة." />
+          <DetailList title="المحاضرات" items={section.scheduleDetails} empty="لا توجد محاضرات مسجلة لهذه الشعبة." />
+        </div>
+      </details>
+
       <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
         <DeleteConfirmButton
           action={deleteSectionAction}
           itemId={section.id}
           entityName="الشعبة"
-          associations={[
-            ...(section.studentsCount > 0 ? [{ label: "طلاب داخل الشعبة", count: section.studentsCount }] : []),
-            ...(section.schedulesCount > 0 ? [{ label: "محاضرات في الجدول", count: section.schedulesCount }] : []),
-          ]}
+          associations={section.deleteAssociations}
         />
       </div>
     </article>
   );
 }
 
+
+type DetailListProps = {
+  title: string;
+  items: string[];
+  empty: string;
+};
+
+function DetailList({ title, items, empty }: DetailListProps) {
+  return (
+    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+      <p className="text-sm font-extrabold text-[var(--app-text)]">{title}</p>
+      {items.length === 0 ? (
+        <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">{empty}</p>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {items.map((item) => (
+            <span key={`${title}-${item}`} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold leading-5 text-slate-700">
+              {item}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type ClassesListProps = {
   classes: ClassListItem[];
-  subjects: { id: string; name: string }[];
+  subjects: { id: string; name: string; schoolStage?: string | null; gradeLevel?: string | null; studyTrack?: string | null }[];
 };
 
 function ClassesList({ classes, subjects }: ClassesListProps) {
@@ -813,10 +806,12 @@ function ClassesList({ classes, subjects }: ClassesListProps) {
 
 type ClassRowProps = {
   schoolClass: ClassListItem;
-  subjects: { id: string; name: string }[];
+  subjects: { id: string; name: string; schoolStage?: string | null; gradeLevel?: string | null; studyTrack?: string | null }[];
 };
 
 function ClassRow({ schoolClass, subjects }: ClassRowProps) {
+  const availableSubjects = filterSubjectsForClass(subjects, schoolClass);
+
   return (
     <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
       <div className="flex min-w-0 gap-4">
@@ -869,23 +864,36 @@ function ClassRow({ schoolClass, subjects }: ClassRowProps) {
           action={deleteClassAction}
           itemId={schoolClass.id}
           entityName="الصف"
-          associations={[
-            ...(schoolClass.studentsCount > 0 ? [{ label: "طلاب داخل الشُعب", count: schoolClass.studentsCount }] : []),
-            ...(schoolClass.schedulesCount > 0 ? [{ label: "محاضرات في الجدول", count: schoolClass.schedulesCount }] : []),
-            ...(schoolClass.subjectsCount > 0 ? [{ label: "مواد دراسية مرتبطة", count: schoolClass.subjectsCount }] : []),
-            ...(schoolClass.sectionsCount > 0 ? [{ label: "شُعب داخل الصف", count: schoolClass.sectionsCount }] : []),
-          ]}
+          associations={schoolClass.deleteAssociations}
         />
       </div>
 
-      <details className="mt-3">
+      <details className="rounded-2xl border border-[var(--app-border-soft)] bg-white/70 p-4 lg:col-span-2">
+        <summary className="cursor-pointer text-sm font-extrabold text-[var(--primary)] hover:underline">
+          عرض تفاصيل الصف
+        </summary>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <DetailList title="الشُعب" items={schoolClass.sectionDetails} empty="لا توجد شُعب داخل هذا الصف." />
+          <DetailList title="الطلاب" items={schoolClass.studentDetails} empty="لا يوجد طلاب داخل هذا الصف." />
+          <DetailList title="المدرسون" items={schoolClass.teacherDetails} empty="لا يوجد مدرسون مرتبطون بهذا الصف." />
+          <DetailList title="المواد" items={schoolClass.subjectDetails} empty="لا توجد مواد مرتبطة بهذا الصف." />
+          <DetailList title="المحاضرات" items={schoolClass.scheduleDetails} empty="لا توجد محاضرات لهذا الصف." />
+        </div>
+      </details>
+
+      <details className="mt-3 rounded-2xl border border-teal-100 bg-teal-50/30 p-4 lg:col-span-2">
         <summary className="cursor-pointer text-sm font-bold text-[var(--primary)] hover:underline">
-          ربط المواد
+          ربط المواد المطابقة للمرحلة والتخصص
         </summary>
         <form action={assignClassSubjectsAction} className="mt-3 space-y-2">
           <input type="hidden" name="classId" value={schoolClass.id} />
+          {availableSubjects.length === 0 ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold leading-6 text-amber-800">
+              لا توجد مواد مطابقة لمرحلة وتخصص هذا الصف. أضف المواد من تبويب المواد الدراسية بنفس المرحلة والتخصص أولًا.
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {subjects.map((subject) => (
+            {availableSubjects.map((subject) => (
               <label key={subject.id} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

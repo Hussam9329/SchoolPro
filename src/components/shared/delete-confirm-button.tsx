@@ -223,9 +223,11 @@ export function DeleteConfirmButton({
                             </div>
 
                             {visibleDetails.length > 0 ? (
-                              <div className="mt-3 rounded-lg bg-slate-50 p-3">
-                                <p className="mb-2 text-xs font-extrabold text-slate-500">التفاصيل:</p>
-                                <div className="flex flex-wrap gap-2">
+                              <details className="mt-3 rounded-lg bg-slate-50 p-3">
+                                <summary className="cursor-pointer text-xs font-extrabold text-slate-600 hover:text-slate-900">
+                                  عرض التفاصيل المرتبطة
+                                </summary>
+                                <div className="mt-3 flex flex-wrap gap-2">
                                   {visibleDetails.map((detail) => (
                                     <span
                                       key={`${assoc.label}-${detail}`}
@@ -235,7 +237,7 @@ export function DeleteConfirmButton({
                                     </span>
                                   ))}
                                 </div>
-                              </div>
+                              </details>
                             ) : null}
                           </li>
                         );
@@ -251,7 +253,7 @@ export function DeleteConfirmButton({
                 {hasAssociations && (
                   <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
                     <p className="text-sm leading-6 text-red-800">
-                      <strong>تحذير:</strong> حذف {entityName} سيؤدي إلى حذف كل التفاصيل المذكورة أعلاه، بما فيها المدرسون والصفوف والمحاضرات والاختبارات والدرجات المرتبطة بها. لا يمكن التراجع عن هذا الإجراء.
+                      <strong>تحذير:</strong> حذف {entityName} سيؤدي إلى حذف كل التفاصيل المذكورة أعلاه، بما فيها الأسماء والقوائم والمحاضرات والسجلات المرتبطة بها. لا يمكن التراجع عن هذا الإجراء.
                     </p>
                   </div>
                 )}

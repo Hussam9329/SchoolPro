@@ -1,7 +1,7 @@
 export const SUBJECT_CUSTOM_OPTION_VALUE = "__custom_subject__";
 
 export type SubjectStageValue = "ابتدائية" | "متوسطة" | "إعدادية";
-export type SubjectTrackValue = "عام" | "علمي" | "أدبي";
+export type SubjectTrackValue = "عام" | "علمي" | "أدبي" | "مهني";
 
 export type SelectOption = {
   value: string;
@@ -18,6 +18,7 @@ export const STUDY_TRACK_OPTIONS: SelectOption[] = [
   { value: "عام", label: "عام" },
   { value: "علمي", label: "علمي" },
   { value: "أدبي", label: "أدبي" },
+  { value: "مهني", label: "مهني" },
 ];
 
 const GENERAL_TRACK_OPTION = STUDY_TRACK_OPTIONS[0];
@@ -86,10 +87,21 @@ const LITERARY_SUBJECTS = [
   "الحاسوب",
 ];
 
+const VOCATIONAL_SUBJECTS = [
+  "التدريب المهني",
+  "الرسم الصناعي",
+  "السلامة المهنية",
+  "الحاسوب",
+  "الرياضيات التطبيقية",
+  "اللغة العربية",
+  "اللغة الإنكليزية",
+];
+
 const TRACK_SUBJECTS: Record<SubjectTrackValue, string[]> = {
   عام: GENERAL_SUBJECTS,
   علمي: SCIENTIFIC_SUBJECTS,
   أدبي: LITERARY_SUBJECTS,
+  مهني: VOCATIONAL_SUBJECTS,
 };
 
 export function isSubjectStage(value: string): value is SubjectStageValue {
@@ -163,6 +175,10 @@ export function getSubjectLevelTrackLabel(
 
   if (track === "أدبي") {
     return gradeLevel ? `${gradeLevel} الأدبي` : "الأدبي";
+  }
+
+  if (track === "مهني") {
+    return gradeLevel ? `${gradeLevel} المهني` : "المهني";
   }
 
   if (stage && gradeLevel) {

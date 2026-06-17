@@ -1,4 +1,13 @@
 import { type DeleteAssociation, type DeleteCheckResult } from "@/types/student";
+import {
+  CLASS_CUSTOM_GRADE_VALUE,
+  buildClassDisplayName,
+  buildClassStorageLevel,
+  getClassGradeOptions,
+  getClassTrackOptions,
+  isClassStage,
+  isClassTrack,
+} from "@/lib/class-catalog";
 
 export type { DeleteAssociation, DeleteCheckResult };
 
@@ -6,6 +15,9 @@ export type SchoolClass = {
   id: string;
   name: string;
   level: string | null;
+  schoolStage: string | null;
+  gradeLevel: string | null;
+  studyTrack: string | null;
   description: string | null;
   isActive: boolean;
   createdAt: Date;
@@ -24,8 +36,12 @@ export type Section = {
 };
 
 export type ClassFormInput = {
-  name: string;
+  name?: string;
   level?: string;
+  schoolStage?: string;
+  gradeLevel?: string;
+  studyTrack?: string;
+  customGradeName?: string;
   description?: string;
 };
 
@@ -40,6 +56,9 @@ export type ClassListItem = {
   id: string;
   name: string;
   level: string | null;
+  schoolStage: string | null;
+  gradeLevel: string | null;
+  studyTrack: string | null;
   description: string | null;
   isActive: boolean;
   sectionsCount: number;
@@ -47,6 +66,12 @@ export type ClassListItem = {
   subjectsCount: number;
   schedulesCount: number;
   subjectIds: string[];
+  sectionDetails: string[];
+  studentDetails: string[];
+  teacherDetails: string[];
+  subjectDetails: string[];
+  scheduleDetails: string[];
+  deleteAssociations: DeleteAssociation[];
   createdAt: Date;
 };
 
@@ -58,8 +83,17 @@ export type SectionListItem = {
   isActive: boolean;
   classId: string;
   className: string;
+  classLevel: string | null;
+  schoolStage: string | null;
+  gradeLevel: string | null;
+  studyTrack: string | null;
   studentsCount: number;
   schedulesCount: number;
+  studentDetails: string[];
+  teacherDetails: string[];
+  subjectDetails: string[];
+  scheduleDetails: string[];
+  deleteAssociations: DeleteAssociation[];
   createdAt: Date;
 };
 
@@ -84,6 +118,10 @@ export function getEmptyClassForm(): ClassFormInput {
   return {
     name: "",
     level: "",
+    schoolStage: "",
+    gradeLevel: "",
+    studyTrack: "",
+    customGradeName: "",
     description: "",
   };
 }
@@ -97,10 +135,42 @@ export function getEmptySectionForm(classId = ""): SectionFormInput {
   };
 }
 
+function hasStructuredClassFields(input: ClassFormInput): boolean {
+  return Boolean(
+    input.schoolStage?.trim() ||
+      input.gradeLevel?.trim() ||
+      input.studyTrack?.trim() ||
+      input.customGradeName?.trim(),
+  );
+}
+
+function resolveClassGradeName(input: ClassFormInput): string {
+  const selectedGrade = input.gradeLevel?.trim();
+  const catalogGrade = selectedGrade && selectedGrade !== CLASS_CUSTOM_GRADE_VALUE ? selectedGrade : "";
+
+  return (
+    input.customGradeName?.trim() ||
+    catalogGrade ||
+    input.name?.trim() ||
+    ""
+  );
+}
+
 export function normalizeClassInput(input: ClassFormInput): ClassFormInput {
+  const schoolStage = input.schoolStage?.trim() || undefined;
+  const gradeLevel = resolveClassGradeName(input) || undefined;
+  const studyTrack = input.studyTrack?.trim() || undefined;
+  const structured = Boolean(schoolStage || gradeLevel || studyTrack || input.customGradeName?.trim());
+
   return {
-    name: input.name.trim(),
-    level: input.level?.trim() || undefined,
+    name: gradeLevel || input.name?.trim() || "",
+    level: structured
+      ? buildClassStorageLevel({ schoolStage, studyTrack }) || undefined
+      : input.level?.trim() || undefined,
+    schoolStage,
+    gradeLevel,
+    studyTrack,
+    customGradeName: input.customGradeName?.trim() || undefined,
     description: input.description?.trim() || undefined,
   };
 }
@@ -129,20 +199,53 @@ export function validateClassInput(
 ): ClassValidationResult {
   const normalized = normalizeClassInput(input);
   const errors: Partial<Record<keyof ClassFormInput, string>> = {};
+  const structured = hasStructuredClassFields(input);
+  const availableTrackValues = getClassTrackOptions(normalized.schoolStage).map((option) => option.value);
+  const availableGradeValues = getClassGradeOptions(normalized.schoolStage).map((option) => option.value);
 
   if (!normalized.name) {
-    errors.name = "اسم الصف مطلوب.";
+    errors.gradeLevel = "اسم الصف مطلوب.";
   }
 
   if (normalized.name && normalized.name.length < 2) {
-    errors.name = "اسم الصف يجب أن يحتوي على حرفين على الأقل.";
+    errors.gradeLevel = "اسم الصف يجب أن يحتوي على حرفين على الأقل.";
   }
 
   if (normalized.name && normalized.name.length > 80) {
-    errors.name = "اسم الصف طويل جدًا.";
+    errors.gradeLevel = "اسم الصف طويل جدًا.";
   }
 
-  if (normalized.level && normalized.level.length > 50) {
+  if (structured) {
+    if (!normalized.schoolStage) {
+      errors.schoolStage = "يجب اختيار المرحلة الدراسية: ابتدائي، متوسط، أو إعدادي.";
+    } else if (!isClassStage(normalized.schoolStage)) {
+      errors.schoolStage = "المرحلة المختارة غير صحيحة.";
+    }
+
+    if (!normalized.studyTrack) {
+      errors.studyTrack = "يجب اختيار التخصص: عام، علمي، أدبي، أو مهني.";
+    } else if (!isClassTrack(normalized.studyTrack)) {
+      errors.studyTrack = "التخصص المختار غير صحيح.";
+    } else if (
+      normalized.schoolStage &&
+      availableTrackValues.length > 0 &&
+      !availableTrackValues.includes(normalized.studyTrack)
+    ) {
+      errors.studyTrack = "هذا التخصص غير مناسب للمرحلة المختارة.";
+    }
+
+    if (!normalized.gradeLevel) {
+      errors.gradeLevel = "يجب اختيار اسم الصف أو إضافة صف خاص.";
+    } else if (
+      normalized.schoolStage &&
+      normalized.gradeLevel &&
+      !normalized.customGradeName &&
+      availableGradeValues.length > 0 &&
+      !availableGradeValues.includes(normalized.gradeLevel)
+    ) {
+      errors.gradeLevel = "الصف المختار غير مناسب للمرحلة الدراسية.";
+    }
+  } else if (normalized.level && normalized.level.length > 80) {
     errors.level = "المرحلة طويلة جدًا.";
   }
 
@@ -192,13 +295,9 @@ export function validateSectionInput(
 }
 
 export function getClassDisplayName(
-  schoolClass: Pick<SchoolClass, "name" | "level">,
+  schoolClass: Pick<SchoolClass, "name" | "level" | "schoolStage" | "gradeLevel" | "studyTrack">,
 ): string {
-  if (schoolClass.level) {
-    return `${schoolClass.name} - ${schoolClass.level}`;
-  }
-
-  return schoolClass.name;
+  return buildClassDisplayName(schoolClass);
 }
 
 export function getSectionDisplayName(
@@ -212,28 +311,38 @@ export function getClassDeleteAssociations(input: {
   studentsCount?: number;
   subjectsCount?: number;
   schedulesCount?: number;
+  sectionDetails?: string[];
+  studentDetails?: string[];
+  subjectDetails?: string[];
+  teacherDetails?: string[];
+  scheduleDetails?: string[];
 }): DeleteCheckResult {
   const sectionsCount = input.sectionsCount ?? 0;
   const studentsCount = input.studentsCount ?? 0;
   const subjectsCount = input.subjectsCount ?? 0;
   const schedulesCount = input.schedulesCount ?? 0;
+  const teachersCount = input.teacherDetails?.length ?? 0;
 
   const associations: DeleteAssociation[] = [];
 
   if (studentsCount > 0) {
-    associations.push({ label: "طلاب داخل الشُعب", count: studentsCount });
+    associations.push({ label: "طلاب داخل الشُعب", count: studentsCount, details: input.studentDetails });
+  }
+
+  if (teachersCount > 0) {
+    associations.push({ label: "مدرسون مرتبطون بالشُعب", count: teachersCount, details: input.teacherDetails });
   }
 
   if (schedulesCount > 0) {
-    associations.push({ label: "محاضرات في الجدول", count: schedulesCount });
+    associations.push({ label: "محاضرات في الجدول", count: schedulesCount, details: input.scheduleDetails });
   }
 
   if (subjectsCount > 0) {
-    associations.push({ label: "مواد دراسية مرتبطة", count: subjectsCount });
+    associations.push({ label: "مواد دراسية مرتبطة", count: subjectsCount, details: input.subjectDetails });
   }
 
   if (sectionsCount > 0) {
-    associations.push({ label: "شُعب داخل الصف", count: sectionsCount });
+    associations.push({ label: "شُعب داخل الصف", count: sectionsCount, details: input.sectionDetails });
   }
 
   return {
@@ -246,18 +355,32 @@ export function getClassDeleteAssociations(input: {
 export function getSectionDeleteAssociations(input: {
   studentsCount?: number;
   schedulesCount?: number;
+  studentDetails?: string[];
+  teacherDetails?: string[];
+  subjectDetails?: string[];
+  scheduleDetails?: string[];
 }): DeleteCheckResult {
   const studentsCount = input.studentsCount ?? 0;
   const schedulesCount = input.schedulesCount ?? 0;
+  const teachersCount = input.teacherDetails?.length ?? 0;
+  const subjectsCount = input.subjectDetails?.length ?? 0;
 
   const associations: DeleteAssociation[] = [];
 
   if (studentsCount > 0) {
-    associations.push({ label: "طلاب داخل الشعبة", count: studentsCount });
+    associations.push({ label: "طلاب داخل الشعبة", count: studentsCount, details: input.studentDetails });
+  }
+
+  if (teachersCount > 0) {
+    associations.push({ label: "مدرسون مرتبطون بالشعبة", count: teachersCount, details: input.teacherDetails });
+  }
+
+  if (subjectsCount > 0) {
+    associations.push({ label: "مواد تظهر في جدول الشعبة", count: subjectsCount, details: input.subjectDetails });
   }
 
   if (schedulesCount > 0) {
-    associations.push({ label: "محاضرات في الجدول", count: schedulesCount });
+    associations.push({ label: "محاضرات في الجدول", count: schedulesCount, details: input.scheduleDetails });
   }
 
   return {

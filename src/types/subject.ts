@@ -24,6 +24,9 @@ export type SubjectListItem = {
   teachersCount: number;
   classesCount: number;
   gradesCount: number;
+  schedulesCount: number;
+  examsCount: number;
+  deleteAssociations: DeleteAssociation[];
   createdAt: Date;
 };
 
@@ -80,23 +83,60 @@ export function getSubjectDeleteAssociations(subject: {
   teachersCount?: number;
   classesCount?: number;
   gradesCount?: number;
+  schedulesCount?: number;
+  examsCount?: number;
+  teacherDetails?: string[];
+  classDetails?: string[];
+  scheduleDetails?: string[];
+  examDetails?: string[];
+  gradeDetails?: string[];
 }): DeleteCheckResult {
   const teachersCount = subject.teachersCount ?? 0;
   const classesCount = subject.classesCount ?? 0;
   const gradesCount = subject.gradesCount ?? 0;
+  const schedulesCount = subject.schedulesCount ?? 0;
+  const examsCount = subject.examsCount ?? 0;
 
   const associations: DeleteAssociation[] = [];
 
-  if (gradesCount > 0) {
-    associations.push({ label: "درجات مسجلة", count: gradesCount });
-  }
-
   if (teachersCount > 0) {
-    associations.push({ label: "ربط بمدرسين", count: teachersCount });
+    associations.push({
+      label: "المدرسون المرتبطون بالمادة",
+      count: teachersCount,
+      details: subject.teacherDetails,
+    });
   }
 
   if (classesCount > 0) {
-    associations.push({ label: "ربط بصفوف", count: classesCount });
+    associations.push({
+      label: "الصفوف المرتبطة بالمادة",
+      count: classesCount,
+      details: subject.classDetails,
+    });
+  }
+
+  if (schedulesCount > 0) {
+    associations.push({
+      label: "محاضرات في الجدول",
+      count: schedulesCount,
+      details: subject.scheduleDetails,
+    });
+  }
+
+  if (examsCount > 0) {
+    associations.push({
+      label: "اختبارات مرتبطة",
+      count: examsCount,
+      details: subject.examDetails,
+    });
+  }
+
+  if (gradesCount > 0) {
+    associations.push({
+      label: "درجات مسجلة",
+      count: gradesCount,
+      details: subject.gradeDetails,
+    });
   }
 
   return {

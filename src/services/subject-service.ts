@@ -17,6 +17,73 @@ export type SubjectServiceResult<T> = {
   errors?: Record<string, string>;
 };
 
+const DELETE_DETAILS_LIMIT = 8;
+
+function compactDeleteDetails(values: Array<string | null | undefined>, totalCount: number): string[] {
+  const uniqueValues = Array.from(
+    new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value))),
+  );
+  const visibleValues = uniqueValues.slice(0, DELETE_DETAILS_LIMIT);
+  const hiddenCount = Math.max(totalCount - visibleValues.length, 0);
+
+  if (hiddenCount > 0) {
+    return [...visibleValues, `+ ${hiddenCount} عناصر أخرى`];
+  }
+
+  return visibleValues;
+}
+
+function formatClassDeleteDetail(schoolClass: { name?: string | null; level?: string | null } | null | undefined): string | undefined {
+  if (!schoolClass?.name) return undefined;
+  return schoolClass.level ? `${schoolClass.name} - ${schoolClass.level}` : schoolClass.name;
+}
+
+function toSubjectListItem(subject: any): SubjectListItem {
+  const teachersCount = subject._count?.teacherSubjects ?? 0;
+  const classesCount = subject._count?.classSubjects ?? 0;
+  const gradesCount = subject._count?.grades ?? 0;
+  const schedulesCount = subject._count?.schedules ?? 0;
+  const examsCount = subject._count?.exams ?? 0;
+
+  const teacherDetails = compactDeleteDetails(
+    (subject.teacherSubjects ?? []).map((teacherSubject: any) => {
+      const teacher = teacherSubject.teacher;
+      if (!teacher?.fullName) return undefined;
+      return teacher.specialty ? `${teacher.fullName} - ${teacher.specialty}` : teacher.fullName;
+    }),
+    teachersCount,
+  );
+
+  const classDetails = compactDeleteDetails(
+    (subject.classSubjects ?? []).map((classSubject: any) => formatClassDeleteDetail(classSubject.class)),
+    classesCount,
+  );
+
+  const deleteCheck = getSubjectDeleteAssociations({
+    teachersCount,
+    classesCount,
+    gradesCount,
+    schedulesCount,
+    examsCount,
+    teacherDetails,
+    classDetails,
+  });
+
+  return {
+    id: subject.id,
+    name: subject.name,
+    description: subject.description,
+    isActive: subject.isActive,
+    teachersCount,
+    classesCount,
+    gradesCount,
+    schedulesCount,
+    examsCount,
+    deleteAssociations: deleteCheck.associations,
+    createdAt: subject.createdAt,
+  };
+}
+
 export async function getSubjects(): Promise<SubjectListItem[]> {
   const subjects = await db.subject.findMany({
     orderBy: [
@@ -28,27 +95,37 @@ export async function getSubjects(): Promise<SubjectListItem[]> {
       },
     ],
     include: {
+      teacherSubjects: {
+        include: {
+          teacher: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      classSubjects: {
+        include: {
+          class: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
       _count: {
         select: {
           teacherSubjects: true,
           classSubjects: true,
           grades: true,
+          schedules: true,
+          exams: true,
         },
       },
     },
   });
 
-  return subjects.map((subject) => ({
-    id: subject.id,
-    name: subject.name,
-    description: subject.description,
-    isActive: subject.isActive,
-    teachersCount: subject._count.teacherSubjects,
-    classesCount: subject._count.classSubjects,
-    gradesCount: subject._count.grades,
-    createdAt: subject.createdAt,
-  }));
+  return subjects.map(toSubjectListItem);
 }
+
 
 export async function getActiveSubjects(): Promise<Subject[]> {
   return db.subject.findMany({
@@ -248,15 +325,27 @@ export async function deleteSubject(
 
 export async function getSubjectDeleteInfo(
   id: string,
-): Promise<SubjectServiceResult<{ associations: { label: string; count: number }[] }>> {
+): Promise<SubjectServiceResult<{ associations: { label: string; count: number; details?: string[] }[] }>> {
   const subject = await db.subject.findUnique({
     where: { id },
     include: {
+      teacherSubjects: {
+        include: {
+          teacher: true,
+        },
+      },
+      classSubjects: {
+        include: {
+          class: true,
+        },
+      },
       _count: {
         select: {
           teacherSubjects: true,
           classSubjects: true,
           grades: true,
+          schedules: true,
+          exams: true,
         },
       },
     },
@@ -266,13 +355,9 @@ export async function getSubjectDeleteInfo(
     return { ok: false, message: "لم يتم العثور على المادة الدراسية." };
   }
 
-  const check = getSubjectDeleteAssociations({
-    teachersCount: subject._count.teacherSubjects,
-    classesCount: subject._count.classSubjects,
-    gradesCount: subject._count.grades,
-  });
+  const item = toSubjectListItem(subject);
 
-  return { ok: true, data: { associations: check.associations }, message: "" };
+  return { ok: true, data: { associations: item.deleteAssociations }, message: "" };
 }
 
 export async function searchSubjects(query: string): Promise<SubjectListItem[]> {
@@ -301,27 +386,37 @@ export async function searchSubjects(query: string): Promise<SubjectListItem[]> 
       name: "asc",
     },
     include: {
+      teacherSubjects: {
+        include: {
+          teacher: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      classSubjects: {
+        include: {
+          class: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
       _count: {
         select: {
           teacherSubjects: true,
           classSubjects: true,
           grades: true,
+          schedules: true,
+          exams: true,
         },
       },
     },
   });
 
-  return subjects.map((subject) => ({
-    id: subject.id,
-    name: subject.name,
-    description: subject.description,
-    isActive: subject.isActive,
-    teachersCount: subject._count.teacherSubjects,
-    classesCount: subject._count.classSubjects,
-    gradesCount: subject._count.grades,
-    createdAt: subject.createdAt,
-  }));
+  return subjects.map(toSubjectListItem);
 }
+
 
 export async function getSubjectsCount(): Promise<{
   total: number;

@@ -256,6 +256,8 @@ export function calculateAge(birthDate?: Date | string | null): number | null {
 export type DeleteAssociation = {
   label: string;
   count: number;
+  /** Optional human-readable linked records shown inside delete confirmation dialogs. */
+  details?: string[];
 };
 
 export type DeleteCheckResult = {

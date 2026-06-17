@@ -462,6 +462,14 @@ function SubjectRow({ subject }: SubjectRowProps) {
             <span className="badge bg-slate-100 text-slate-600">
               الدرجات: {subject.gradesCount}
             </span>
+
+            <span className="badge bg-slate-100 text-slate-600">
+              الجدول: {subject.schedulesCount}
+            </span>
+
+            <span className="badge bg-slate-100 text-slate-600">
+              الاختبارات: {subject.examsCount}
+            </span>
           </div>
         </div>
       </div>
@@ -471,11 +479,7 @@ function SubjectRow({ subject }: SubjectRowProps) {
           action={deleteSubjectAction}
           itemId={subject.id}
           entityName="المادة الدراسية"
-          associations={[
-            ...(subject.gradesCount > 0 ? [{ label: "درجات مسجلة", count: subject.gradesCount }] : []),
-            ...(subject.teachersCount > 0 ? [{ label: "ربط بمدرسين", count: subject.teachersCount }] : []),
-            ...(subject.classesCount > 0 ? [{ label: "ربط بصفوف", count: subject.classesCount }] : []),
-          ]}
+          associations={subject.deleteAssociations}
         />
       </div>
     </article>

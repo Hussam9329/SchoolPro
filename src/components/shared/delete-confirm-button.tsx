@@ -160,7 +160,7 @@ export function DeleteConfirmButton({
           onClick={isPending ? undefined : handleCancel}
         >
           <div
-            className="mx-4 w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
+            className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Step indicator (only when associations exist) */}
@@ -207,15 +207,39 @@ export function DeleteConfirmButton({
                 {hasAssociations && (
                   <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
                     <p className="mb-3 text-sm font-bold text-sky-800">
-                      البيانات التي سيتم حذفها نهائيًا:
+                      تفاصيل البيانات المرتبطة التي سيتم حذفها نهائيًا:
                     </p>
-                    <ul className="space-y-2">
-                      {associations.map((assoc) => (
-                        <li key={assoc.label} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
-                          <span className="text-gray-700">{assoc.label}</span>
-                          <span className="font-extrabold text-red-700">{assoc.count}</span>
-                        </li>
-                      ))}
+                    <ul className="space-y-3">
+                      {associations.map((assoc) => {
+                        const visibleDetails = assoc.details?.filter(Boolean) ?? [];
+
+                        return (
+                          <li key={assoc.label} className="rounded-xl bg-white px-3 py-3 text-sm shadow-sm ring-1 ring-sky-100">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="font-bold text-gray-800">{assoc.label}</span>
+                              <span className="rounded-full bg-red-50 px-3 py-1 font-extrabold text-red-700 ring-1 ring-red-100">
+                                {assoc.count}
+                              </span>
+                            </div>
+
+                            {visibleDetails.length > 0 ? (
+                              <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                                <p className="mb-2 text-xs font-extrabold text-slate-500">التفاصيل:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {visibleDetails.map((detail) => (
+                                    <span
+                                      key={`${assoc.label}-${detail}`}
+                                      className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold leading-5 text-slate-700"
+                                    >
+                                      {detail}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </li>
+                        );
+                      })}
                     </ul>
                     <div className="mt-3 flex items-center justify-between rounded-lg bg-red-50 px-3 py-2 text-sm border border-red-200">
                       <span className="font-bold text-red-800">إجمالي البيانات المرتبطة</span>
@@ -227,7 +251,7 @@ export function DeleteConfirmButton({
                 {hasAssociations && (
                   <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
                     <p className="text-sm leading-6 text-red-800">
-                      <strong>تحذير:</strong> حذف {entityName} سيؤدي إلى حذف جميع البيانات المذكورة أعلاه نهائيًا. لا يمكن التراجع عن هذا الإجراء.
+                      <strong>تحذير:</strong> حذف {entityName} سيؤدي إلى حذف كل التفاصيل المذكورة أعلاه، بما فيها المدرسون والصفوف والمحاضرات والاختبارات والدرجات المرتبطة بها. لا يمكن التراجع عن هذا الإجراء.
                     </p>
                   </div>
                 )}
@@ -287,7 +311,7 @@ export function DeleteConfirmButton({
                       تأكيد نهائي: اكتب كلمة التأكيد
                     </h3>
                     <p className="mt-2 text-sm leading-7 text-gray-600">
-                      أنت على وشك حذف {entityName} و<span className="font-extrabold text-red-700">{totalAssociated}</span> بيانات مرتبطة نهائيًا.
+                      أنت على وشك حذف {entityName} و<span className="font-extrabold text-red-700">{totalAssociated}</span> سجلًا مرتبطًا نهائيًا بعد عرض تفاصيل المدرسين والصفوف وباقي الارتباطات.
                       اكتب <span className="rounded bg-red-100 px-2 py-0.5 font-extrabold text-red-700">{CONFIRM_WORD}</span> لتأكيد الحذف.
                     </p>
                   </div>

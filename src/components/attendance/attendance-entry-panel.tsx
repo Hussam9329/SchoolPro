@@ -68,7 +68,7 @@ export function AttendanceEntryPanel({ checkoutWarningTime, scheduleId, attendan
             وضع الهاتف — كاميرا QR + إدخال يدوي
           </div>
         ) : (
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700">
+          <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-2 text-sm font-bold text-teal-700">
             <Monitor size={16} />
             وضع الحاسوب — بحث بالاسم أو الرمز
           </div>

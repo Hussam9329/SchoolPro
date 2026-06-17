@@ -27,7 +27,7 @@ export function CopyCodeButton({ studentCode }: CopyCodeButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-indigo-100 hover:text-indigo-700"
+      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-teal-100 hover:text-teal-700"
       title="نسخ الرمز"
     >
       <Copy size={12} />
@@ -46,7 +46,7 @@ export function QrToggleButton({ onToggle, isShowing }: QrToggleButtonProps) {
     <button
       type="button"
       onClick={onToggle}
-      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-indigo-100 hover:text-indigo-700"
+      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-teal-100 hover:text-teal-700"
       title={isShowing ? "إخفاء الرمز" : "عرض رمز QR"}
     >
       <QrCode size={12} />
@@ -71,7 +71,7 @@ export function GenerateBadgeButton({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-indigo-100 hover:text-indigo-700"
+      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-teal-100 hover:text-teal-700"
       title="توليد الباج"
     >
       <IdCard size={12} />

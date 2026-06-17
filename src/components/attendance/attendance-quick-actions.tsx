@@ -70,8 +70,8 @@ export function AttendanceQuickActions({
       label: "المتأخرون اليوم",
       count: todayLateCount,
       icon: Clock,
-      className: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100",
-      activeClassName: "border-amber-500 bg-amber-600 text-white shadow-md shadow-amber-100",
+      className: "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100",
+      activeClassName: "border-sky-500 bg-sky-600 text-white shadow-md shadow-sky-100",
     },
     {
       key: "missing",
@@ -88,8 +88,8 @@ export function AttendanceQuickActions({
       label: "عرض كل السجلات",
       count: undefined,
       icon: ClipboardList,
-      className: "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
-      activeClassName: "border-indigo-500 bg-indigo-600 text-white shadow-md shadow-indigo-100",
+      className: "border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100",
+      activeClassName: "border-teal-500 bg-teal-600 text-white shadow-md shadow-teal-100",
     },
     {
       key: "clear",
@@ -114,7 +114,7 @@ export function AttendanceQuickActions({
           </p>
         </div>
         {isPending ? (
-          <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-extrabold text-indigo-700">
+          <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-extrabold text-teal-700">
             <RefreshCw size={14} className="animate-spin" />
             جارٍ التحميل
           </span>

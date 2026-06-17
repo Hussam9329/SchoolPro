@@ -426,7 +426,7 @@ function AttendanceStats({ summary }: AttendanceStatsProps) {
       label: "إجمالي السجلات",
       value: summary.total,
       icon: ClipboardList,
-      className: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700",
+      className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700",
     },
     {
       label: "حاضرون",
@@ -438,13 +438,13 @@ function AttendanceStats({ summary }: AttendanceStatsProps) {
       label: "غائبون",
       value: summary.absent,
       icon: XCircle,
-      className: "bg-gradient-to-br from-red-100 to-indigo-100 text-red-700",
+      className: "bg-gradient-to-br from-red-100 to-teal-100 text-red-700",
     },
     {
       label: "متأخرون",
       value: summary.late,
       icon: Clock,
-      className: "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700",
+      className: "bg-gradient-to-br from-sky-100 to-orange-100 text-sky-700",
     },
     {
       label: "لم ينصرفوا",
@@ -498,9 +498,9 @@ function AttendanceStats({ summary }: AttendanceStatsProps) {
 
 function AttendanceDeferredNotice({ today }: { today: string }) {
   return (
-    <section className="app-card overflow-hidden border-dashed border-indigo-200 bg-gradient-to-l from-indigo-50/70 to-white">
+    <section className="app-card overflow-hidden border-dashed border-teal-200 bg-gradient-to-l from-teal-50/70 to-white">
       <div className="grid gap-5 p-6 md:grid-cols-[auto_1fr_auto] md:items-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-indigo-100 text-indigo-700">
+        <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-teal-100 text-teal-700">
           <ClipboardList size={28} />
         </div>
 
@@ -744,9 +744,9 @@ function AttendancePeriodReport({ summary, recordsCount, filter, todayAbsentCoun
   const isTodayAbsentFilter = isTodayAbsentRequest(filter);
 
   const items = [
-    { label: "السجلات المطابقة", value: recordsCount, icon: ClipboardList, className: "text-indigo-700 bg-indigo-50" },
+    { label: "السجلات المطابقة", value: recordsCount, icon: ClipboardList, className: "text-teal-700 bg-teal-50" },
     { label: "حضور فعلي", value: summary.checkedIn, icon: LogIn, className: "text-emerald-700 bg-emerald-50" },
-    { label: "انصراف مسجل", value: summary.checkedOut, icon: LogOut, className: "text-amber-700 bg-amber-50" },
+    { label: "انصراف مسجل", value: summary.checkedOut, icon: LogOut, className: "text-sky-700 bg-sky-50" },
     { label: "مجازون", value: summary.excused, icon: ShieldCheck, className: "text-sky-700 bg-sky-50" },
   ];
 
@@ -835,7 +835,7 @@ function StudentTotalsReport({ rows }: StudentTotalsReportProps) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1050px] text-sm">
             <thead>
-              <tr className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-indigo-50/60 to-amber-50/40">
+              <tr className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/60 to-sky-50/40">
                 <th className="px-5 py-3 text-right font-extrabold text-[var(--app-text-muted)]">الطالب</th>
                 <th className="px-5 py-3 text-right font-extrabold text-[var(--app-text-muted)]">الصف / الشعبة</th>
                 <th className="px-5 py-3 text-center font-extrabold text-[var(--app-text-muted)]">الكل</th>
@@ -852,7 +852,7 @@ function StudentTotalsReport({ rows }: StudentTotalsReportProps) {
             </thead>
             <tbody className="divide-y divide-[var(--app-border-soft)]">
               {rows.map((row) => (
-                <tr key={row.studentId} className="transition hover:bg-indigo-50/40">
+                <tr key={row.studentId} className="transition hover:bg-teal-50/40">
                   <td className="px-5 py-3">
                     <p className="font-extrabold text-[var(--app-text)]">{row.studentName}</p>
                     <p className="text-xs text-[var(--app-text-soft)]">{row.studentCode ?? "بدون رمز"}</p>
@@ -863,10 +863,10 @@ function StudentTotalsReport({ rows }: StudentTotalsReportProps) {
                   <td className="px-5 py-3 text-center font-bold text-[var(--app-text)]">{row.totalRecords}</td>
                   <td className="px-5 py-3 text-center font-bold text-emerald-600">{row.present}</td>
                   <td className="px-5 py-3 text-center font-bold text-red-600">{row.absent}</td>
-                  <td className="px-5 py-3 text-center font-bold text-amber-600">{row.late}</td>
+                  <td className="px-5 py-3 text-center font-bold text-sky-600">{row.late}</td>
                   <td className="px-5 py-3 text-center font-bold text-sky-600">{row.excused}</td>
                   <td className="px-5 py-3 text-center font-bold text-emerald-700">{row.checkedIn}</td>
-                  <td className="px-5 py-3 text-center font-bold text-amber-700">{row.checkedOut}</td>
+                  <td className="px-5 py-3 text-center font-bold text-sky-700">{row.checkedOut}</td>
                   <td className="px-5 py-3 text-center font-bold text-rose-600">{row.missingCheckOut}</td>
                   <td className="px-5 py-3 text-center font-extrabold text-[var(--app-text)]">{row.attendanceRate}%</td>
                   <td className="px-5 py-3 text-center">
@@ -936,7 +936,7 @@ function AttendanceRow({ record }: AttendanceRowProps) {
   const sourceLabel = getAttendanceSourceLabel(record.source);
 
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
       <div className="flex min-w-0 gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700">
           <UserRound size={25} />
@@ -953,7 +953,7 @@ function AttendanceRow({ record }: AttendanceRowProps) {
             </span>
 
             {record.isComputedAbsence && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700 border border-amber-200">
+              <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-xs font-extrabold text-sky-700 border border-sky-200">
                 غياب محسوب
               </span>
             )}
@@ -992,7 +992,7 @@ function AttendanceRow({ record }: AttendanceRowProps) {
                 </span>
               )}
               {record.checkOutAt && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 font-bold text-amber-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 font-bold text-sky-700">
                   انصراف: {formatAttendanceTime(record.checkOutAt)}
                 </span>
               )}

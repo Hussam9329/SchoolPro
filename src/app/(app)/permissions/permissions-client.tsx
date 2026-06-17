@@ -167,7 +167,7 @@ export function PermissionsClient({
       ) : null}
 
       {!canManage ? (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm font-bold leading-7 text-amber-800">
+        <div className="rounded-3xl border border-sky-200 bg-sky-50 p-5 text-sm font-bold leading-7 text-sky-800">
           حسابك الحالي ليس مدير نظام، لذلك تستطيع مشاهدة الصلاحيات فقط بدون إضافة أو تعديل أو حذف.
         </div>
       ) : null}
@@ -182,7 +182,7 @@ export function PermissionsClient({
         {roles.map((role) => (
           <div key={role.key} className="app-card p-6">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700">
                 <ShieldCheck size={24} />
               </div>
               <div>
@@ -263,7 +263,7 @@ export function PermissionsClient({
                     <div className="font-extrabold text-[var(--app-text)]">
                       {user.username}
                       {user.id === currentAdminId ? (
-                        <span className="mr-2 rounded-full bg-indigo-50 px-2 py-1 text-[10px] text-indigo-700">حسابك الحالي</span>
+                        <span className="mr-2 rounded-full bg-teal-50 px-2 py-1 text-[10px] text-teal-700">حسابك الحالي</span>
                       ) : null}
                     </div>
                   </td>
@@ -310,7 +310,7 @@ export function PermissionsClient({
                       confirmLabel="نعم، احذف"
                       cancelLabel="تراجع"
                       disabled={!canManage || user.id === currentAdminId}
-                      className="btn border-red-100 bg-gradient-to-r from-red-50 to-indigo-50 text-red-700 hover:from-red-100 hover:to-indigo-100"
+                      className="btn border-red-100 bg-gradient-to-r from-red-50 to-teal-50 text-red-700 hover:from-red-100 hover:to-teal-100"
                     />
                   </td>
                 </tr>
@@ -326,7 +326,7 @@ export function PermissionsClient({
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <div className="app-card flex items-center gap-4 p-5">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700">
         {icon}
       </div>
       <div>

@@ -364,7 +364,7 @@ function PaymentsStats({
           label="المعلّق"
           amount={totalPending}
           icon={Clock}
-          iconClass="bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700"
+          iconClass="bg-gradient-to-br from-sky-100 to-orange-100 text-sky-700"
         />
 
         <MoneyCard
@@ -378,7 +378,7 @@ function PaymentsStats({
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="app-card app-card-hover p-5">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
               <Receipt size={22} />
             </div>
 
@@ -565,7 +565,7 @@ function PaymentRow({ payment }: PaymentRowProps) {
   });
 
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
       <div className="flex min-w-0 gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700">
           <Wallet size={25} />
@@ -597,7 +597,7 @@ function PaymentRow({ payment }: PaymentRowProps) {
             )}
 
             {payment.discountAmount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 font-bold text-amber-800">
+              <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 font-bold text-sky-800">
                 <Tag size={14} />
                 خصم: {payment.formattedDiscountAmount}
                 {payment.discountPercent != null && payment.discountPercent > 0 && (
@@ -664,7 +664,7 @@ function PaymentRow({ payment }: PaymentRowProps) {
             {payment.discountReason && (
               <p>
                 سبب الخصم:{" "}
-                <span className="font-bold text-amber-700">
+                <span className="font-bold text-sky-700">
                   {payment.discountReason}
                 </span>
               </p>

@@ -122,7 +122,7 @@ export function StudentReportActions({
               key={section.key}
               type="button"
               onClick={() => toggleSection(section.key)}
-              className="flex items-center justify-between rounded-2xl border border-[var(--app-border-soft)] bg-white px-4 py-3 text-sm font-extrabold text-[var(--app-text)] transition hover:border-[var(--app-primary)] hover:bg-indigo-50"
+              className="flex items-center justify-between rounded-2xl border border-[var(--app-border-soft)] bg-white px-4 py-3 text-sm font-extrabold text-[var(--app-text)] transition hover:border-[var(--app-primary)] hover:bg-teal-50"
             >
               <span>{section.label}</span>
               {checked ? <CheckSquare size={18} className="text-[var(--app-primary)]" /> : <Square size={18} className="text-[var(--app-text-muted)]" />}

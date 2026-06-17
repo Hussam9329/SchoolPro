@@ -212,9 +212,9 @@ type GradeExamFilterFormProps = {
 function GradeExamFilterForm({ sections, subjects, teachers, sectionId, subjectId, teacherId, examType, query }: GradeExamFilterFormProps) {
   return (
     <form action="/grades" className="app-card overflow-hidden">
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
             <ClipboardList size={24} />
           </div>
           <div>
@@ -366,10 +366,10 @@ function GradesStats({ total, excellent, passed, failed, averagePercentage }: {
   averagePercentage: number;
 }) {
   const stats = [
-    { label: "إجمالي الدرجات", value: total, icon: BarChart3, className: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700" },
+    { label: "إجمالي الدرجات", value: total, icon: BarChart3, className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700" },
     { label: "ممتاز", value: excellent, icon: Star, className: "bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700" },
     { label: "ناجح", value: passed, icon: TrendingUp, className: "bg-gradient-to-br from-sky-100 to-cyan-100 text-sky-700" },
-    { label: "راسب", value: failed, icon: TrendingDown, className: "bg-indigo-100 text-indigo-700" },
+    { label: "راسب", value: failed, icon: TrendingDown, className: "bg-teal-100 text-teal-700" },
   ];
 
   return (
@@ -393,7 +393,7 @@ function GradesStats({ total, excellent, passed, failed, averagePercentage }: {
       <div className="app-card p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><Award size={20} /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700"><Award size={20} /></div>
             <div>
               <p className="text-sm font-bold text-[var(--app-text-muted)]">متوسط النسبة المئوية</p>
               <p className="text-2xl font-extrabold text-[var(--app-text)]">{averagePercentage}%</p>
@@ -401,7 +401,7 @@ function GradesStats({ total, excellent, passed, failed, averagePercentage }: {
           </div>
         </div>
         <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-200">
-          <div className="h-full rounded-full bg-amber-500 transition-all duration-500" style={{ width: `${averagePercentage}%` }} />
+          <div className="h-full rounded-full bg-sky-500 transition-all duration-500" style={{ width: `${averagePercentage}%` }} />
         </div>
       </div>
     </div>
@@ -433,12 +433,12 @@ function GradeRow({ grade }: { grade: GradeListItem }) {
   const ratingBadgeClass =
     grade.ratingClass === "badge-success" ? "bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700" :
     grade.ratingClass === "badge-info" ? "bg-gradient-to-br from-sky-100 to-cyan-100 text-sky-700" :
-    grade.ratingClass === "badge-warning" ? "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700" : "bg-indigo-100 text-indigo-700";
+    grade.ratingClass === "badge-warning" ? "bg-gradient-to-br from-sky-100 to-orange-100 text-sky-700" : "bg-teal-100 text-teal-700";
 
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
       <div className="flex min-w-0 gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-100 to-blue-100 text-indigo-700"><ClipboardList size={25} /></div>
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-teal-100 to-blue-100 text-teal-700"><ClipboardList size={25} /></div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h4 className="text-lg font-extrabold text-[var(--app-text)]">{grade.title}</h4>
@@ -448,7 +448,7 @@ function GradeRow({ grade }: { grade: GradeListItem }) {
 
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-[var(--app-text-muted)]">
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold"><UserRound size={14} />{grade.studentName}</span>
-            {grade.sectionName && grade.className && <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 font-bold text-indigo-700"><Layers size={14} />{grade.className} / شعبة {grade.sectionName}</span>}
+            {grade.sectionName && grade.className && <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 font-bold text-teal-700"><Layers size={14} />{grade.className} / شعبة {grade.sectionName}</span>}
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold"><BookOpen size={14} />{grade.subjectName}</span>
             {grade.teacherName && <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-bold"><GraduationCap size={14} />{grade.teacherName}</span>}
           </div>
@@ -460,7 +460,7 @@ function GradeRow({ grade }: { grade: GradeListItem }) {
             <p>التاريخ: <span className="font-bold text-[var(--app-text)]">{formatGradeShortDate(grade.date)}</span></p>
           </div>
 
-          {warningMessage && percentage < 60 && <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" /><span className="text-amber-800">{warningMessage}</span></div>}
+          {warningMessage && percentage < 60 && <div className="mt-3 flex items-start gap-2 rounded-xl bg-sky-50 p-3 text-sm"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-sky-600" /><span className="text-sky-800">{warningMessage}</span></div>}
           {grade.notes && <p className="mt-2 text-sm leading-6 text-[var(--app-text-soft)]">{grade.notes}</p>}
         </div>
       </div>

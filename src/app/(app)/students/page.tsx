@@ -368,9 +368,9 @@ function StudentCreateForm({ classes, sections, draft }: StudentCreateFormProps)
       action={createStudentAction}
       className="app-card overflow-hidden"
     >
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
             <UserRound size={24} />
           </div>
 
@@ -388,12 +388,12 @@ function StudentCreateForm({ classes, sections, draft }: StudentCreateFormProps)
 
       <div className="grid gap-5 p-6">
         {/* Smart Alert */}
-        <div className="rounded-2xl border border-indigo-200 bg-gradient-to-l to-indigo-50/80 from-amber-50/50 p-4">
+        <div className="rounded-2xl border border-teal-200 bg-gradient-to-l from-teal-50/80 from-sky-50/50 p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-700">
               <AlertTriangle size={16} />
             </div>
-            <p className="text-sm leading-7 text-indigo-800">
+            <p className="text-sm leading-7 text-teal-800">
               اختر الصف مباشرة. إذا كان الصف لا يحتوي على شعبة، سيتم إنشاء شعبة عامة تلقائيًا عند حفظ الطالب.
             </p>
           </div>
@@ -494,7 +494,7 @@ function StudentCreateForm({ classes, sections, draft }: StudentCreateFormProps)
             </span>
 
             {classGroups.length === 0 ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-800">
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-7 text-sky-800">
                 لا توجد صفوف مضافة حاليًا. أضف الصف من صفحة إدارة الصفوف أولًا.
               </div>
             ) : (
@@ -539,7 +539,7 @@ function StudentCreateForm({ classes, sections, draft }: StudentCreateFormProps)
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">
           بعد إضافة الطلاب، يمكن استخدامهم في الحضور والدرجات والأقساط.
         </p>
@@ -575,7 +575,7 @@ function StudentsStats({
       label: "إجمالي الطلاب",
       value: total,
       icon: Users,
-      className: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700",
+      className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700",
     },
     {
       label: "مستمرون",
@@ -587,19 +587,19 @@ function StudentsStats({
       label: "متوقفون",
       value: inactive,
       icon: AlertTriangle,
-      className: "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700",
+      className: "bg-gradient-to-br from-sky-100 to-orange-100 text-sky-700",
     },
     {
       label: "متخرجون",
       value: graduated,
       icon: GraduationCap,
-      className: "bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700",
+      className: "bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700",
     },
     {
       label: "منقولون",
       value: transferred,
       icon: AlertTriangle,
-      className: "bg-gradient-to-br from-indigo-100 to-indigo-100 text-indigo-700",
+      className: "bg-gradient-to-br from-teal-100 to-teal-100 text-teal-700",
     },
     {
       label: "بدون شعبة",
@@ -744,9 +744,9 @@ function StudentRow({ student }: StudentRowProps) {
   const statusClass = getStudentStatusBadgeClass(student.status);
 
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 xl:grid-cols-[1fr_auto] xl:items-center">
       <div className="flex min-w-0 gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
           <UserRound size={25} />
         </div>
 

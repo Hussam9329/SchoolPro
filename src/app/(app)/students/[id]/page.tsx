@@ -155,7 +155,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
 
         <section data-report-section="notes" className="app-card p-6">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
               <FileText size={20} />
             </div>
             <div>
@@ -174,7 +174,7 @@ function SummaryCard({ title, value, icon: Icon }: { title: string; value: strin
   return (
     <div className="app-card p-5">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
           <Icon size={20} />
         </div>
         <div>

@@ -345,9 +345,9 @@ function ClassCreateForm({ draft }: { draft?: { name?: string; level?: string; d
       action={createClassAction}
       className="app-card overflow-hidden"
     >
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
             <GraduationCap size={24} />
           </div>
 
@@ -431,7 +431,7 @@ function ClassCreateForm({ draft }: { draft?: { name?: string; level?: string; d
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">
           بعد حفظ الصف، أضف شعبة واحدة على الأقل.
         </p>
@@ -453,9 +453,9 @@ type SectionCreateFormProps = {
 function SectionCreateForm({ classes, draft }: SectionCreateFormProps) {
   return (
     <form action={createSectionAction} className="app-card overflow-hidden">
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700">
             <DoorOpen size={24} />
           </div>
 
@@ -501,7 +501,7 @@ function SectionCreateForm({ classes, draft }: SectionCreateFormProps) {
           </select>
 
           {classes.length === 0 ? (
-            <p className="mt-2 text-sm leading-6 text-amber-700">
+            <p className="mt-2 text-sm leading-6 text-sky-700">
               أضف صفًا أولًا حتى تتمكن من إنشاء الشُعب.
             </p>
           ) : null}
@@ -570,7 +570,7 @@ function SectionCreateForm({ classes, draft }: SectionCreateFormProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">
           الشعبة ستُربط بالصف المختار مباشرة.
         </p>
@@ -599,13 +599,13 @@ function ClassesStats({ total, sections }: ClassesStatsProps) {
       label: "إجمالي الصفوف",
       value: total,
       icon: GraduationCap,
-      className: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700",
+      className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700",
     },
     {
       label: "إجمالي الشُعب",
       value: sections,
       icon: DoorOpen,
-      className: "bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700",
+      className: "bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700",
     },
   ];
 
@@ -728,9 +728,9 @@ type SectionRowProps = {
 
 function SectionRow({ section }: SectionRowProps) {
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
       <div className="flex gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700">
           <DoorOpen size={22} />
         </div>
 
@@ -818,9 +818,9 @@ type ClassRowProps = {
 
 function ClassRow({ schoolClass, subjects }: ClassRowProps) {
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
       <div className="flex min-w-0 gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
           <GraduationCap size={25} />
         </div>
 

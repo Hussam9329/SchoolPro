@@ -45,18 +45,18 @@ const alertConfig: Record<
   warning: {
     icon: AlertTriangle,
     wrapperClass: "smart-alert-warning",
-    iconClass: "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700",
-    titleClass: "text-amber-950",
+    iconClass: "bg-gradient-to-br from-sky-100 to-orange-100 text-sky-700",
+    titleClass: "text-sky-950",
     actionClass:
-      "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 focus-visible:shadow-[0_0_0_4px_rgba(234,88,12,0.18)]",
+      "bg-gradient-to-r from-sky-500 to-orange-500 text-white hover:from-sky-600 hover:to-orange-600 focus-visible:shadow-[0_0_0_4px_rgba(234,88,12,0.18)]",
   },
   danger: {
     icon: XCircle,
     wrapperClass: "smart-alert-danger",
-    iconClass: "bg-gradient-to-br from-red-100 to-indigo-100 text-red-700",
+    iconClass: "bg-gradient-to-br from-red-100 to-teal-100 text-red-700",
     titleClass: "text-red-950",
     actionClass:
-      "bg-gradient-to-r from-indigo-600 to-red-600 text-white hover:from-indigo-700 hover:to-red-700 focus-visible:shadow-[0_0_0_4px_rgba(225,29,72,0.16)]",
+      "bg-gradient-to-r from-teal-600 to-red-600 text-white hover:from-teal-700 hover:to-red-700 focus-visible:shadow-[0_0_0_4px_rgba(225,29,72,0.16)]",
   },
 };
 

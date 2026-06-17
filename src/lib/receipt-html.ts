@@ -43,9 +43,9 @@ export function generatePaymentReceiptHtml(
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Tajawal', sans-serif; background: #f5f5f5; padding: 20px; direction: rtl; }
-  .receipt { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; }
-  .header { background: linear-gradient(135deg, #1e40af, #b45309); color: #fff; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
+  body { font-family: 'Tajawal', sans-serif; background: #f5f8f7; padding: 20px; direction: rtl; }
+  .receipt { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 18px 56px rgba(15,118,110,0.12); overflow: hidden; }
+  .header { background: linear-gradient(135deg, #0f766e, #0284c7); color: #fff; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
   .header h1 { font-size: 22px; font-weight: 800; }
   .header p { font-size: 14px; opacity: 0.9; }
   .body { padding: 24px 32px; }
@@ -53,10 +53,10 @@ export function generatePaymentReceiptHtml(
   .row:last-child { border: none; }
   .label { color: #64748b; font-weight: 700; font-size: 14px; }
   .value { color: #0f172a; font-weight: 800; font-size: 14px; }
-  .total-row { background: #eef2ff; margin: 16px -32px; padding: 16px 32px; }
-  .total-row .label, .total-row .value { font-size: 18px; color: #1e40af; }
+  .total-row { background: #ccfbf1; margin: 16px -32px; padding: 16px 32px; }
+  .total-row .label, .total-row .value { font-size: 18px; color: #0f766e; }
   .footer { text-align: center; padding: 16px; color: #94a3b8; font-size: 12px; }
-  .print-btn { display: block; margin: 20px auto; padding: 12px 32px; background: #1e40af; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Tajawal', sans-serif; }
+  .print-btn { display: block; margin: 20px auto; padding: 12px 32px; background: #0f766e; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Tajawal', sans-serif; }
   @media print { .print-btn { display: none; } body { background: #fff; padding: 0; } .receipt { box-shadow: none; } }
 </style>
 </head>

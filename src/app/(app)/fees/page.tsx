@@ -82,7 +82,7 @@ export default async function FeesPage({ searchParams }: FeesPageProps) {
                   <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr_1fr_1.2fr_auto] lg:items-end">
                     <div>
                       <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
                           <Settings size={22} />
                         </div>
                         <div>
@@ -121,7 +121,7 @@ export default async function FeesPage({ searchParams }: FeesPageProps) {
 
                   <div className="mt-4 flex flex-wrap gap-2 text-xs font-extrabold text-[var(--app-text-muted)]">
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">الدراسية: {formatMoney(tuitionAmount)}</span>
-                    <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">الزي: {formatMoney(uniformAmount)}</span>
+                    <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800">الزي: {formatMoney(uniformAmount)}</span>
                   </div>
                 </form>
               );

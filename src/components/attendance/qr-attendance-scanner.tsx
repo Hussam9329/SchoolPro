@@ -167,11 +167,11 @@ export function QrAttendanceScanner({
   const modeColor =
     mode === "check-in"
       ? "from-emerald-100 to-teal-100 text-emerald-700"
-      : "from-amber-100 to-orange-100 text-amber-700";
+      : "from-sky-100 to-orange-100 text-sky-700";
 
   return (
     <div className="app-card overflow-hidden">
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${modeColor}`}

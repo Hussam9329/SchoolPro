@@ -147,7 +147,7 @@ export function DeleteConfirmButton({
         disabled={disabled || isPending}
         className={
           className ??
-          "btn w-full border-red-100 bg-gradient-to-r from-red-50 to-indigo-50 text-red-700 hover:from-red-100 hover:to-indigo-100"
+          "btn w-full border-red-100 bg-gradient-to-r from-red-50 to-teal-50 text-red-700 hover:from-red-100 hover:to-teal-100"
         }
       >
         <Trash2 size={17} />
@@ -188,7 +188,7 @@ export function DeleteConfirmButton({
                   <div className={[
                     "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
                     hasAssociations
-                      ? "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600"
+                      ? "bg-gradient-to-br from-sky-100 to-orange-100 text-sky-600"
                       : "bg-gradient-to-br from-red-100 to-orange-100 text-red-600",
                   ].join(" ")}>
                     <AlertTriangle size={24} />
@@ -205,8 +205,8 @@ export function DeleteConfirmButton({
 
                 {/* Associations list */}
                 {hasAssociations && (
-                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="mb-3 text-sm font-bold text-amber-800">
+                  <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
+                    <p className="mb-3 text-sm font-bold text-sky-800">
                       البيانات التي سيتم حذفها نهائيًا:
                     </p>
                     <ul className="space-y-2">
@@ -257,7 +257,7 @@ export function DeleteConfirmButton({
                       type="button"
                       onClick={handleNextStep}
                       disabled={isPending}
-                      className="rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-amber-700 hover:to-orange-700 disabled:opacity-50"
+                      className="rounded-xl bg-gradient-to-r from-sky-600 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-sky-700 hover:to-orange-700 disabled:opacity-50"
                     >
                       نعم، أريد الحذف
                     </button>

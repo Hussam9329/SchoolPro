@@ -71,7 +71,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <section className="grid gap-4 lg:grid-cols-3">
           <div className="app-card p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
                 <CalendarDays size={22} />
               </div>
               <div>
@@ -83,7 +83,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
           <div className="app-card p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
                 <Clock3 size={22} />
               </div>
               <div>
@@ -107,9 +107,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </section>
 
         <form action={saveSchoolSettingsAction} className="app-card overflow-hidden">
-          <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-indigo-50/60 to-blue-50/20 p-6">
+          <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/60 to-blue-50/20 p-6">
             <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
                 <Settings size={24} />
               </div>
               <div>
@@ -126,13 +126,13 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <p className="mb-3 text-sm font-extrabold text-[var(--app-text)]">أيام العطل الأسبوعية</p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {SCHOOL_DAY_OPTIONS.map((day) => (
-                  <label key={day.value} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-[var(--app-border-soft)] bg-white px-4 py-3 text-sm font-bold text-[var(--app-text)] transition hover:border-indigo-200 hover:bg-indigo-50/30">
+                  <label key={day.value} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-[var(--app-border-soft)] bg-white px-4 py-3 text-sm font-bold text-[var(--app-text)] transition hover:border-teal-200 hover:bg-teal-50/30">
                     <input
                       type="checkbox"
                       name="weekendDays"
                       value={day.value}
                       defaultChecked={settings.weekendDays.includes(day.value)}
-                      className="h-4 w-4 accent-indigo-600"
+                      className="h-4 w-4 accent-teal-600"
                     />
                     {day.label}
                   </label>

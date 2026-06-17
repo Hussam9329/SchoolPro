@@ -349,9 +349,9 @@ export function QuickCodeAttendance({ qrAvailable, checkoutWarningTime, schedule
 
   return (
     <div className="app-card overflow-hidden">
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-indigo-50/40 to-blue-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-blue-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
             <Keyboard size={24} />
           </div>
           <div>
@@ -386,8 +386,8 @@ export function QuickCodeAttendance({ qrAvailable, checkoutWarningTime, schedule
             onClick={() => handleModeSwitch("check-out")}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-extrabold transition-all ${
               mode === "check-out"
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md"
-                : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                ? "bg-gradient-to-r from-sky-500 to-orange-500 text-white shadow-md"
+                : "bg-sky-50 text-sky-700 hover:bg-sky-100"
             }`}
           >
             <UserX size={18} />
@@ -455,9 +455,9 @@ export function QuickCodeAttendance({ qrAvailable, checkoutWarningTime, schedule
                       key={student.id}
                       type="button"
                       onClick={() => handleStudentSelect(student)}
-                      className="flex w-full items-center gap-3 border-b border-[var(--app-border-soft)] px-4 py-3 text-right transition hover:bg-indigo-50/60 last:border-0"
+                      className="flex w-full items-center gap-3 border-b border-[var(--app-border-soft)] px-4 py-3 text-right transition hover:bg-teal-50/60 last:border-0"
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
                         <User size={16} />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -586,7 +586,7 @@ export function QuickCodeAttendance({ qrAvailable, checkoutWarningTime, schedule
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs ${
                       entry.mode === "check-in"
                         ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
+                        : "bg-sky-100 text-sky-700"
                     }`}
                   >
                     {entry.mode === "check-in" ? (

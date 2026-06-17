@@ -87,7 +87,7 @@ function InfoCard({ icon, label, value, hint }: { icon?: React.ReactNode; label:
   return (
     <div className="app-card p-5">
       <div className="flex items-start gap-3">
-        {icon && <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700">{icon}</div>}
+        {icon && <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">{icon}</div>}
         <div>
           <p className="text-xs font-bold text-[var(--app-text-soft)]">{label}</p>
           <p className="mt-1 text-base font-extrabold text-[var(--app-text)]">{value}</p>

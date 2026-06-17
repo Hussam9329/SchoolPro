@@ -61,10 +61,13 @@ export function PageHeader({
 
   return (
     <section className="app-card overflow-hidden">
-      <div className="flex flex-col gap-5 p-6 sm:p-7 lg:flex-row lg:items-center lg:justify-between">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-teal-400 via-sky-300 to-teal-400" />
+      <div className="pointer-events-none absolute left-0 top-0 h-32 w-32 rounded-full bg-sky-200/30 blur-3xl dark:bg-sky-900/20" />
+
+      <div className="relative flex flex-col gap-5 p-6 sm:p-7 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 gap-4">
-          <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-amber-600 text-white shadow-lg shadow-indigo-500/20 sm:flex">
-            <Icon size={26} />
+          <div className="hidden h-[60px] w-[60px] shrink-0 items-center justify-center rounded-[22px] border border-teal-100 bg-gradient-to-br from-teal-50 to-sky-50 text-teal-700 shadow-sm sm:flex dark:border-teal-900/50 dark:from-teal-950/30 dark:to-sky-950/20 dark:text-teal-200">
+            <Icon size={27} />
           </div>
 
           <div className="min-w-0">
@@ -72,7 +75,7 @@ export function PageHeader({
               {backHref ? (
                 <Link
                   href={backHref}
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--app-text-muted)] transition hover:border-indigo-200 hover:text-[var(--primary)] hover:shadow-sm hover:shadow-indigo-100/50"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-white/80 px-3 py-1.5 text-xs font-black text-[var(--app-text-muted)] transition hover:border-teal-200 hover:bg-teal-50 hover:text-[var(--primary)] dark:bg-[var(--color-app-card)] dark:hover:bg-teal-950/30"
                 >
                   <ArrowRight size={14} />
                   {backLabel}
@@ -121,7 +124,7 @@ export function SimplePageHeader({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-[var(--app-text)]">
+        <h2 className="text-2xl font-black tracking-tight text-[var(--app-text)]">
           {title}
         </h2>
 

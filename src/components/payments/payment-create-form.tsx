@@ -78,7 +78,7 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
       <input type="hidden" name="status" value={status} />
       <input type="hidden" name="paymentMode" value={paymentMode} />
 
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700">
             <CreditCard size={24} />
@@ -120,7 +120,7 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
                   key={student.studentId}
                   type="button"
                   onClick={() => pickStudent(student)}
-                  className="block w-full rounded-xl px-4 py-3 text-right text-sm font-extrabold text-[var(--app-text)] transition hover:bg-indigo-50"
+                  className="block w-full rounded-xl px-4 py-3 text-right text-sm font-extrabold text-[var(--app-text)] transition hover:bg-teal-50"
                 >
                   {student.studentName}
                 </button>
@@ -185,7 +185,7 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
         )}
 
         {feeType === "uniform" && (
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4 text-sm leading-7 text-amber-900">
+          <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-sm leading-7 text-sky-900">
             <div className="flex items-start gap-2">
               <Shirt size={18} className="mt-1 shrink-0" />
               <p>سيتم تسجيل مبلغ الزي المحدد للصف مباشرة وربطه بالطالب في سجل الدفعات.</p>
@@ -221,7 +221,7 @@ export function PaymentCreateForm({ students, action }: PaymentCreateFormProps) 
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">لا تُعرض رموز الطلاب أو التفاصيل الزائدة في قائمة الاختيار؛ التفاصيل تظهر بعد اختيار الطالب فقط.</p>
         <button type="submit" className="btn btn-primary" disabled={!selectedStudent || targetAmount <= 0 || (feeType === "tuition" && paymentMode === "installment" && Number(installmentAmount || 0) <= 0)}>
           <CheckCircle2 size={18} />

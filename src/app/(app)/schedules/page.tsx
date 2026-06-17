@@ -329,7 +329,7 @@ function SchedulesStats({
       label: "إجمالي المحاضرات",
       value: total,
       icon: Layers3,
-      className: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700",
+      className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700",
     },
     {
       label: "محاضرات فعّالة",
@@ -341,13 +341,13 @@ function SchedulesStats({
       label: "محاضرات متوقف",
       value: inactive,
       icon: AlertTriangle,
-      className: "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700",
+      className: "bg-gradient-to-br from-sky-100 to-orange-100 text-sky-700",
     },
     {
       label: "محاضرات اليوم",
       value: today,
       icon: Clock,
-      className: "bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700",
+      className: "bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700",
     },
   ];
 
@@ -482,9 +482,9 @@ function ScheduleRow({ schedule }: ScheduleRowProps) {
   const statusBadgeClass = getScheduleStatusBadgeClass(schedule.isActive);
 
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
       <div className="flex min-w-0 gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
           <CalendarClock size={25} />
         </div>
 

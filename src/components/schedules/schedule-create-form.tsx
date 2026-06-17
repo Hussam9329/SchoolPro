@@ -65,9 +65,9 @@ export function ScheduleCreateFormClient({ sections, subjects, teachers, draft, 
 
   return (
     <form id="schedule-form" action={action} className="app-card overflow-hidden">
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
             <CalendarClock size={23} />
           </div>
 
@@ -120,13 +120,13 @@ export function ScheduleCreateFormClient({ sections, subjects, teachers, draft, 
         </div>
 
         {noLinkedTeachersForSection ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm font-bold leading-7 text-amber-800">
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm font-bold leading-7 text-sky-800">
             لا يوجد مدرس مرتبط بهذه الشعبة. اربط المدرس بالشعبة من صفحة المدرسين قبل إضافة المحاضرة.
           </div>
         ) : null}
 
         {noLinkedSubjectsForSection ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm font-bold leading-7 text-amber-800">
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm font-bold leading-7 text-sky-800">
             هذه الشعبة لديها مدرسون، لكن لا توجد مواد مرتبطة بهم. اربط المواد بالمدرسين أولًا.
           </div>
         ) : null}
@@ -180,8 +180,8 @@ export function ScheduleCreateFormClient({ sections, subjects, teachers, draft, 
           <textarea id="notes" name="notes" autoComplete="off" rows={3} maxLength={500} placeholder="ملاحظات إضافية عن المحاضرة..." className="input min-h-[90px] resize-y leading-7" defaultValue={draft?.notes ?? ""} />
         </FormField>
 
-        <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-4">
-          <input type="checkbox" id="schedule-isActive" name="isActive" autoComplete="off" defaultChecked={draft?.isActive !== "off"} className="h-5 w-5 accent-indigo-600" />
+        <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-4">
+          <input type="checkbox" id="schedule-isActive" name="isActive" autoComplete="off" defaultChecked={draft?.isActive !== "off"} className="h-5 w-5 accent-teal-600" />
           <span>
             <span className="block font-extrabold text-[var(--app-text)]">المحاضرة فعّالة</span>
             <span className="mt-1 block text-sm leading-6 text-[var(--app-text-muted)]">المحاضرات الفعّالة تظهر في الجدول الدراسي ويمكن تسجيل الحضور فيها.</span>
@@ -189,7 +189,7 @@ export function ScheduleCreateFormClient({ sections, subjects, teachers, draft, 
         </label>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">النظام يمنع تضارب المدرس أو الشعبة، ولا يمسح المدخلات عند وجود خطأ.</p>
         <button type="submit" disabled={!canCreate || noLinkedTeachersForSection || noLinkedSubjectsForSection} className="btn btn-primary disabled:cursor-not-allowed disabled:opacity-60">
           <CheckCircle2 size={18} />

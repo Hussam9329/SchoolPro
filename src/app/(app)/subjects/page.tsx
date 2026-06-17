@@ -222,9 +222,9 @@ function SubjectCreateForm() {
       action={createSubjectAction}
       className="app-card overflow-hidden"
     >
-      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+      <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-amber-100 text-indigo-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-100 to-sky-100 text-teal-700">
             <BookOpen size={23} />
           </div>
 
@@ -281,7 +281,7 @@ function SubjectCreateForm() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/30 to-amber-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/30 to-sky-50/20 p-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-7 text-[var(--app-text-muted)]">
           بعد إضافة المواد، ستكون الخطوة التالية إنشاء الصفوف والشُعب.
         </p>
@@ -305,7 +305,7 @@ function SubjectStats({ total }: SubjectStatsProps) {
       label: "إجمالي المواد",
       value: total,
       icon: Layers3,
-      className: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700",
+      className: "bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700",
     },
   ];
 
@@ -420,9 +420,9 @@ type SubjectRowProps = {
 
 function SubjectRow({ subject }: SubjectRowProps) {
   return (
-    <article className="grid gap-4 p-5 transition hover:bg-indigo-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
+    <article className="grid gap-4 p-5 transition hover:bg-teal-50/40 lg:grid-cols-[1fr_auto] lg:items-center">
       <div className="flex min-w-0 gap-4">
-        <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+        <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-100 to-teal-100 text-blue-700">
           <BookOpen size={24} />
         </div>
 

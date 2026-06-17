@@ -73,10 +73,10 @@ export function EmptyState({
     >
       <div className="relative mb-6">
         {/* Decorative background circles */}
-        <div className="absolute inset-0 -m-4 rounded-full bg-indigo-200/30 blur-2xl" />
-        <div className="absolute inset-0 -m-2 rounded-full bg-amber-200/20 blur-xl" />
+        <div className="absolute inset-0 -m-4 rounded-full bg-teal-200/30 blur-2xl" />
+        <div className="absolute inset-0 -m-2 rounded-full bg-sky-200/20 blur-xl" />
 
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-[28px] border border-indigo-100 bg-gradient-to-br from-indigo-50 to-amber-100 text-indigo-700 shadow-[var(--shadow-soft)] animate-pulse-soft">
+        <div className="relative flex h-20 w-20 items-center justify-center rounded-[28px] border border-teal-100 bg-gradient-to-br from-teal-50 to-sky-100 text-teal-700 shadow-[var(--shadow-soft)] animate-pulse-soft">
           <Icon size={34} />
         </div>
       </div>

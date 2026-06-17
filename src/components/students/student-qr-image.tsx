@@ -16,7 +16,7 @@ export function StudentQrImage({ studentId, studentCode }: StudentQrImageProps) 
       <button
         type="button"
         onClick={() => setShowQr(!showQr)}
-        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-indigo-100 hover:text-indigo-700"
+        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--app-text-muted)] transition hover:bg-teal-100 hover:text-teal-700"
         title={showQr ? "إخفاء الرمز" : "عرض رمز QR"}
       >
         <QrCode size={12} />

@@ -55,9 +55,9 @@ export default async function ExamsPage({ searchParams }: ExamsPageProps) {
 
         <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <form action={createExamAction} className="app-card overflow-hidden">
-            <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l to-indigo-50/40 to-amber-50/20 p-6">
+            <div className="border-b border-[var(--app-border-soft)] bg-gradient-to-l from-teal-50/40 to-sky-50/20 p-6">
               <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700"><ClipboardList size={24} /></div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700"><ClipboardList size={24} /></div>
                 <div>
                   <h3 className="text-xl font-extrabold text-[var(--app-text)]">إضافة امتحان</h3>
                   <p className="mt-1 text-sm leading-7 text-[var(--app-text-muted)]">حدد الصف والمادة والمدرس ونوع الامتحان ودرجاته.</p>
